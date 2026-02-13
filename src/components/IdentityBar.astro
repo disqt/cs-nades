@@ -31,6 +31,7 @@ const { loggedIn } = Astro.props;
 </div>
 
 <script>
+  const base = (window as any).__base || '/';
   const overlay = document.getElementById('login-overlay')!;
   const input = document.getElementById('nickname-input') as HTMLInputElement;
 
@@ -54,7 +55,7 @@ const { loggedIn } = Astro.props;
       input.style.borderColor = '#f85149';
       return;
     }
-    const res = await fetch('/api/identity', {
+    const res = await fetch(`${base}api/identity`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nickname }),
@@ -71,7 +72,7 @@ const { loggedIn } = Astro.props;
   });
 
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
-    await fetch('/api/identity', { method: 'DELETE' });
+    await fetch(`${base}api/identity`, { method: 'DELETE' });
     window.location.reload();
   });
 </script>

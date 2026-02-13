@@ -5,7 +5,7 @@ const maps = ['mirage', 'dust2', 'inferno', 'overpass', 'ancient', 'anubis', 'nu
 ---
 
 <Layout title="Submit a Lineup">
-  <a class="back-link" href="/">&larr; Back to lineups</a>
+  <a class="back-link" href={import.meta.env.BASE_URL}>&larr; Back to lineups</a>
   <h1>Submit a Lineup</h1>
   <p class="subtitle">Share a grenade lineup for the community</p>
 
@@ -85,7 +85,8 @@ const maps = ['mirage', 'dust2', 'inferno', 'overpass', 'ancient', 'anubis', 'nu
     }
 
     try {
-      const res = await fetch('/api/submissions', { method: 'POST', body: formData });
+      const base = (window as any).__base || '/';
+      const res = await fetch(`${base}api/submissions`, { method: 'POST', body: formData });
       const data = await res.json();
       if (res.ok) {
         status.textContent = 'Submitted! Thanks for contributing.';

@@ -80,6 +80,7 @@ const modalData = nades.map(n => ({
 </script>
 
 <script>
+  const base = (window as any).__base || '/';
   const data = (window as any).__modalData as Array<{
     title: string;
     map: string;
@@ -238,7 +239,7 @@ const modalData = nades.map(n => ({
       const frameType = container.dataset.frame!;
       const direction = el.dataset.dir!;
 
-      const res = await fetch('/api/reports', {
+      const res = await fetch(`${base}api/reports`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug: currentModalSlug, frameType, direction }),
