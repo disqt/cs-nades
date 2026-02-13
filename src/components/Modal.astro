@@ -1,0 +1,182 @@
+---
+import { TECHNIQUE_LABELS, type Nade } from '../lib/nades';
+
+interface Props {
+  nades: Nade[];
+}
+
+const { nades } = Astro.props;
+
+function techClass(t: string): string {
+  if (['left', 'right'].includes(t)) return 'tech-simple';
+  if (['left_jump', 'right_jump'].includes(t)) return 'tech-jump';
+  if (['run_left', 'run_right'].includes(t)) return 'tech-run';
+  return 'tech-complex';
+}
+
+const modalData = nades.map(n => ({
+  title: `${n.titleTo} from ${n.titleFrom}`,
+  map: n.map,
+  side: n.team === 't' ? 'T' : 'CT',
+  technique: TECHNIQUE_LABELS[n.technique] || n.technique,
+  techClass: techClass(n.technique),
+  movement: n.movement,
+  console: n.console,
+  source: n.source_url,
+  position: `data/${n.map}/${n.slug}/position.jpg`,
+  aim: `data/${n.map}/${n.slug}/aim.jpg`,
+  result: `data/${n.map}/${n.slug}/result.jpg`,
+  capPos: n.captions[0] || 'Position',
+  capAim: n.captions[1] || 'Aim',
+  slug: n.slug,
+}));
+---
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal" id="modal">
+    <button class="modal-close" id="modal-close">&times;</button>
+    <div class="modal-head">
+      <h2 id="m-title"></h2>
+      <span class="technique-pill" id="m-technique"></span>
+      <div class="modal-tags" id="m-tags"></div>
+    </div>
+    <div class="modal-frames">
+      <div class="modal-frame">
+        <img id="m-pos" alt="Position" />
+        <p id="m-cap-pos"></p>
+      </div>
+      <div class="modal-frame">
+        <img id="m-aim" alt="Aim" />
+        <p id="m-cap-aim"></p>
+      </div>
+      <div class="modal-frame">
+        <img id="m-res" alt="Result" />
+        <p>Result</p>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <code class="console-cmd" id="m-console" title="Click to copy"></code>
+      <a class="source-link" id="m-source" target="_blank" rel="noopener">csnades.gg &#8599;</a>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ modalData }}>
+  window.__modalData = modalData;
+</script>
+
+<script>
+  const data = (window as any).__modalData as Array<{
+    title: string;
+    map: string;
+    side: string;
+    technique: string;
+    techClass: string;
+    movement: string;
+    console: string;
+    source: string;
+    position: string;
+    aim: string;
+    result: string;
+    capPos: string;
+    capAim: string;
+    slug: string;
+  }>;
+
+  const bg = document.getElementById('modal-bg')!;
+  const modal = document.getElementById('modal')!;
+  const closeBtn = document.getElementById('modal-close')!;
+  const mTitle = document.getElementById('m-title')!;
+  const mTechnique = document.getElementById('m-technique')!;
+  const mTags = document.getElementById('m-tags')!;
+  const mPos = document.getElementById('m-pos') as HTMLImageElement;
+  const mAim = document.getElementById('m-aim') as HTMLImageElement;
+  const mRes = document.getElementById('m-res') as HTMLImageElement;
+  const mCapPos = document.getElementById('m-cap-pos')!;
+  const mCapAim = document.getElementById('m-cap-aim')!;
+  const mConsole = document.getElementById('m-console')!;
+  const mSource = document.getElementById('m-source') as HTMLAnchorElement;
+
+  function openModal(idx: number) {
+    const d = data[idx];
+    if (!d) return;
+
+    mTitle.textContent = d.title;
+
+    mTechnique.textContent = d.technique;
+    mTechnique.className = `technique-pill ${d.techClass}`;
+
+    mTags.innerHTML = '';
+    const mapTag = document.createElement('span');
+    mapTag.className = `tag map-${d.map}`;
+    mapTag.textContent = d.map;
+    mTags.appendChild(mapTag);
+
+    const sideTag = document.createElement('span');
+    sideTag.className = `tag side-${d.side === 'T' ? 't' : 'ct'}`;
+    sideTag.textContent = d.side;
+    mTags.appendChild(sideTag);
+
+    if (d.movement && d.movement !== 'stationary') {
+      const moveTag = document.createElement('span');
+      moveTag.className = 'tag';
+      moveTag.textContent = d.movement;
+      mTags.appendChild(moveTag);
+    }
+
+    mPos.src = d.position;
+    mAim.src = d.aim;
+    mRes.src = d.result;
+    mCapPos.textContent = d.capPos;
+    mCapAim.textContent = d.capAim;
+
+    mConsole.textContent = d.console;
+    mSource.href = d.source;
+
+    bg.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    bg.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // Close on background click (not modal content)
+  bg.addEventListener('click', (e) => {
+    if (e.target === bg) closeModal();
+  });
+
+  // Close button
+  closeBtn.addEventListener('click', closeModal);
+
+  // Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Copy console command
+  mConsole.addEventListener('click', () => {
+    const text = mConsole.textContent || '';
+    navigator.clipboard.writeText(text).then(() => {
+      const original = mConsole.textContent;
+      mConsole.textContent = 'Copied!';
+      setTimeout(() => { mConsole.textContent = original; }, 1200);
+    });
+  });
+
+  // Frame images click to open full size
+  [mPos, mAim, mRes].forEach(img => {
+    img.addEventListener('click', () => {
+      window.open(img.src, '_blank');
+    });
+  });
+
+  // Card click handlers
+  document.querySelectorAll('.nade-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const idx = parseInt((card as HTMLElement).dataset.idx!, 10);
+      openModal(idx);
+    });
+  });
+</script>

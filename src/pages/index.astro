@@ -2,6 +2,7 @@
 import Layout from '../components/Layout.astro';
 import NadeCard from '../components/NadeCard.astro';
 import FilterBar from '../components/FilterBar.astro';
+import Modal from '../components/Modal.astro';
 import { loadNades, getMapsPresent, seededShuffle } from '../lib/nades';
 
 const allNades = loadNades();
@@ -19,6 +20,8 @@ const maps = getMapsPresent(nades);
   <div class="grid" id="cards">
     {nades.map((n, i) => <NadeCard nade={n} idx={i} />)}
   </div>
+
+  <Modal nades={nades} />
 </Layout>
 
 <script>
