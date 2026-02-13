@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import { join } from 'node:path';
 
-const DB_PATH = import.meta.env.NADES_DB_PATH || join(process.cwd(), 'cs-nades.db');
+const DB_PATH = import.meta.env.NADES_DB_PATH || process.env.NADES_DB_PATH || join(process.cwd(), 'cs-nades.db');
 
 let _db: Database.Database | null = null;
 

@@ -30,7 +30,7 @@ export const TECHNIQUE_LABELS: Record<string, string> = {
   run_right: 'Run + Right',
   run_left_jump: 'Run + Jump',
 };
-const DATA_DIR = import.meta.env.NADES_DATA_DIR || 'public/data';
+const DATA_DIR = import.meta.env.NADES_DATA_DIR || process.env.NADES_DATA_DIR || 'public/data';
 
 let _cache: Nade[] | null = null;
 
