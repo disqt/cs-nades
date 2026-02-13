@@ -1,4 +1,8 @@
+import os
 import re
+import subprocess
+import tempfile
+from pathlib import Path
 from urllib.parse import unquote
 
 
@@ -82,6 +86,71 @@ def extract_nade_from_html(html):
         "lineup_url": f"https://assets.csnades.gg/nades/{asset_id}/lineup.webp" if asset_id else None,
         "source_url": f"https://csnades.gg/{map_name}/{nade_type}s/{slug}",
     }
+
+
+def download_file(url, dest_path):
+    """Download a file from URL to dest_path."""
+    import requests
+    resp = requests.get(url, stream=True, timeout=30)
+    resp.raise_for_status()
+    with open(dest_path, "wb") as f:
+        for chunk in resp.iter_content(chunk_size=8192):
+            f.write(chunk)
+
+
+def extract_frame(video_path, timestamp_s, output_path):
+    """Extract a single frame at timestamp_s from video."""
+    cmd = [
+        "ffmpeg", "-y",
+        "-ss", f"{timestamp_s:.3f}",
+        "-i", str(video_path),
+        "-frames:v", "1",
+        "-q:v", "2",
+        str(output_path),
+    ]
+    subprocess.run(cmd, capture_output=True, check=True)
+
+
+def extract_lineup_frames(video_url, vtt_cues, output_dir):
+    """Download video, extract position/aim/result frames based on VTT cues.
+
+    Frame selection:
+    - position: midpoint of first caption (usually "Stand at X")
+    - aim: midpoint of second caption (usually "Aim at Y")
+    - result: 2 seconds after last caption ends (smoke has landed)
+    """
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    if len(vtt_cues) < 2:
+        print(f"  WARNING: Only {len(vtt_cues)} VTT cues, need at least 2")
+        return False
+
+    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp:
+        tmp_video = tmp.name
+
+    try:
+        print(f"  Downloading video...")
+        download_file(video_url, tmp_video)
+
+        # Position frame: midpoint of first cue
+        pos_ts = (vtt_cues[0][0] + vtt_cues[0][1]) / 2
+        print(f"  Position frame at {pos_ts:.2f}s ({vtt_cues[0][2]})")
+        extract_frame(tmp_video, pos_ts, output_dir / "position.jpg")
+
+        # Aim frame: midpoint of second cue
+        aim_ts = (vtt_cues[1][0] + vtt_cues[1][1]) / 2
+        print(f"  Aim frame at {aim_ts:.2f}s ({vtt_cues[1][2]})")
+        extract_frame(tmp_video, aim_ts, output_dir / "aim.jpg")
+
+        # Result frame: 2s after last cue ends
+        result_ts = vtt_cues[-1][1] + 2.0
+        print(f"  Result frame at {result_ts:.2f}s (after last cue)")
+        extract_frame(tmp_video, result_ts, output_dir / "result.jpg")
+
+        return True
+    finally:
+        os.unlink(tmp_video)
 
 
 def extract_recommended_slugs(html, map_name):
