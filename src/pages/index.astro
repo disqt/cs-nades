@@ -78,6 +78,27 @@ const bookmarkedSet = new Set(bookmarkedSlugs);
     document.getElementById('visible-count')!.textContent = String(v);
   }
 
+  // Hover-to-play video on grid cards
+  document.querySelectorAll('.nade-card').forEach(card => {
+    const video = card.querySelector('.card-video') as HTMLVideoElement;
+    if (!video) return;
+    const img = card.querySelector('.card-img') as HTMLImageElement;
+    card.addEventListener('mouseenter', () => {
+      video.style.display = 'block';
+      if (img) img.style.visibility = 'hidden';
+      video.play().catch(() => {
+        video.style.display = 'none';
+        if (img) img.style.visibility = '';
+      });
+    });
+    card.addEventListener('mouseleave', () => {
+      video.style.display = 'none';
+      if (img) img.style.visibility = '';
+      video.pause();
+      video.currentTime = 0;
+    });
+  });
+
   // Bookmark button click handler
   document.querySelectorAll('.bookmark-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {

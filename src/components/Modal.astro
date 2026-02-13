@@ -26,6 +26,7 @@ const modalData = nades.map(n => ({
   position: `data/${n.map}/${n.slug}/position.jpg`,
   aim: `data/${n.map}/${n.slug}/aim.jpg`,
   result: `data/${n.map}/${n.slug}/result.jpg`,
+  resultVideo: `data/${n.map}/${n.slug}/result.mp4`,
   capPos: n.captions[0] || 'Position',
   capAim: n.captions[1] || 'Aim',
   slug: n.slug,
@@ -50,7 +51,8 @@ const modalData = nades.map(n => ({
         <p id="m-cap-aim"></p>
       </div>
       <div class="modal-frame">
-        <img id="m-res" alt="Result" />
+        <video id="m-res-video" muted loop playsinline autoplay></video>
+        <img id="m-res" alt="Result" style="display:none" />
         <p>Result</p>
       </div>
     </div>
@@ -78,6 +80,7 @@ const modalData = nades.map(n => ({
     position: string;
     aim: string;
     result: string;
+    resultVideo: string;
     capPos: string;
     capAim: string;
     slug: string;
@@ -92,6 +95,7 @@ const modalData = nades.map(n => ({
   const mPos = document.getElementById('m-pos') as HTMLImageElement;
   const mAim = document.getElementById('m-aim') as HTMLImageElement;
   const mRes = document.getElementById('m-res') as HTMLImageElement;
+  const mResVideo = document.getElementById('m-res-video') as HTMLVideoElement;
   const mCapPos = document.getElementById('m-cap-pos')!;
   const mCapAim = document.getElementById('m-cap-aim')!;
   const mConsole = document.getElementById('m-console')!;
@@ -126,9 +130,23 @@ const modalData = nades.map(n => ({
 
     mPos.src = d.position;
     mAim.src = d.aim;
-    mRes.src = d.result;
     mCapPos.textContent = d.capPos;
     mCapAim.textContent = d.capAim;
+
+    // Result: try video first, fall back to image
+    mResVideo.style.display = '';
+    mRes.style.display = 'none';
+    mResVideo.onerror = () => {
+      mResVideo.style.display = 'none';
+      mRes.style.display = '';
+      mRes.src = d.result;
+    };
+    mResVideo.src = d.resultVideo;
+    mResVideo.play().catch(() => {
+      mResVideo.style.display = 'none';
+      mRes.style.display = '';
+      mRes.src = d.result;
+    });
 
     mConsole.textContent = d.console;
     mSource.href = d.source;
@@ -140,6 +158,11 @@ const modalData = nades.map(n => ({
   function closeModal() {
     bg.classList.remove('open');
     document.body.style.overflow = '';
+    // Stop video download
+    mResVideo.onerror = null;
+    mResVideo.pause();
+    mResVideo.removeAttribute('src');
+    mResVideo.load();
   }
 
   // Close on background click (not modal content)
@@ -170,6 +193,11 @@ const modalData = nades.map(n => ({
     img.addEventListener('click', () => {
       window.open(img.src, '_blank');
     });
+  });
+
+  // Video click to open full size
+  mResVideo.addEventListener('click', () => {
+    window.open(mResVideo.src, '_blank');
   });
 
   // Card click handlers

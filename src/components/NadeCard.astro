@@ -28,6 +28,14 @@ const frameBase = `data/${nade.map}/${nade.slug}`;
     alt={title}
     loading="lazy"
   />
+  <video
+    class="card-video"
+    src={`${frameBase}/result_thumb.mp4`}
+    muted
+    loop
+    playsinline
+    preload="none"
+  ></video>
   <div class="card-overlay">
     <span class={`tag map-${nade.map}`}>{nade.map}</span>
     <span class={`tag side-${nade.team}`}>{sideLabel}</span>
