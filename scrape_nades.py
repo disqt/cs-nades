@@ -136,14 +136,13 @@ def generate_thumbnail(input_path, width=400):
     return str(thumb_path)
 
 
-def extract_result_clip(video_path, timestamp_s, output_dir, duration=4.0):
-    """Extract a short clip around the result timestamp.
+def extract_result_clip(video_path, start_s, output_dir, duration=6.0):
+    """Extract a short clip starting at start_s.
 
-    Starts 1s before the timestamp, runs for 4s total.
     Generates both full-res and thumbnail (400px) versions.
     """
     output_dir = Path(output_dir)
-    start = max(0, timestamp_s - 1.0)
+    start = max(0, start_s)
 
     # Full resolution clip
     full_clip = output_dir / "result.mp4"
@@ -211,10 +210,14 @@ def extract_lineup_frames(video_url, vtt_cues, output_dir):
         extract_frame(tmp_video, result_ts, output_dir / "result.jpg")
         generate_thumbnail(output_dir / "result.jpg")
 
-        # Result video clip (~4s centered on result timestamp)
-        duration = 4.0
-        print(f"  Result clip at {result_ts:.2f}s ({duration}s)")
-        extract_result_clip(tmp_video, result_ts, output_dir)
+        # Result video clip: from aim cue midpoint through result
+        # Shows the throw animation, grenade flight, and landing
+        aim_mid = (vtt_cues[1][0] + vtt_cues[1][1]) / 2
+        clip_start = max(0, aim_mid)
+        clip_duration = min(8.0, result_ts - clip_start + 2.0)
+        clip_duration = max(clip_duration, 4.0)  # at least 4s
+        print(f"  Result clip from {clip_start:.2f}s ({clip_duration:.1f}s)")
+        extract_result_clip(tmp_video, clip_start, output_dir, duration=clip_duration)
 
         return True
     finally:

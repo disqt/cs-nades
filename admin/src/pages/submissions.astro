@@ -97,6 +97,7 @@ try {
         const el = btn as HTMLElement;
         const id = el.dataset.id;
         const action = el.dataset.action;
+        if (action === 'deleted' && !confirm('Permanently delete this submission?')) return;
         const res = await fetch('/api/review', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
