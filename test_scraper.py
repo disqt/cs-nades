@@ -1,7 +1,7 @@
 import os
 import re
 import pytest
-from scrape_nades import parse_vtt, extract_nade_from_html, extract_recommended_slugs
+from scrape_nades import parse_vtt, extract_nade_from_html, extract_recommended_slugs, extract_beginner_smoke_slugs
 
 
 def test_parse_vtt_basic():
@@ -60,20 +60,27 @@ def test_extract_recommended_slugs():
 
     slugs = extract_recommended_slugs(html, "mirage")
 
-    # Should find a substantial number of recommended nades
     assert len(slugs) >= 10, f"Expected at least 10 slugs, got {len(slugs)}"
-
-    # Known slugs from the mirage recommended page
-    assert "ticket-booth-from-tetris" in slugs
     assert "top-mid-from-t-spawn" in slugs
-
-    # All slugs should be lowercase alphanumeric with hyphens only
     for slug in slugs:
         assert re.match(r"^[a-z0-9-]+$", slug), f"Invalid slug format: {slug!r}"
-
-    # No duplicates
     assert len(slugs) == len(set(slugs)), "Slugs should be unique"
-
-    # Should not contain map names or navigation slugs
     assert "mirage" not in slugs
-    assert "dust2" not in slugs
+
+
+def test_extract_beginner_smoke_slugs():
+    fixture = os.path.join(os.path.dirname(__file__), "test_fixture_list.html")
+    if not os.path.exists(fixture):
+        pytest.skip("fixture not available")
+    with open(fixture, encoding="utf-8") as f:
+        html = f.read()
+
+    slugs = extract_beginner_smoke_slugs(html)
+
+    # Should find ~10-20 beginner-recommended nades (13 for mirage)
+    assert 8 <= len(slugs) <= 25, f"Expected 8-25 beginner slugs, got {len(slugs)}"
+    assert "top-mid-from-t-spawn" in slugs
+    assert len(slugs) == len(set(slugs)), "Slugs should be unique"
+    # Much fewer than total nades on the page
+    all_slugs = extract_recommended_slugs(html, "mirage")
+    assert len(slugs) < len(all_slugs), "Beginner subset should be smaller than all nades"

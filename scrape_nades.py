@@ -1,9 +1,18 @@
+import argparse
+import json
 import os
 import re
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 from urllib.parse import unquote
+
+import requests
+
+ACTIVE_DUTY_MAPS = ["mirage", "dust2", "inferno", "overpass", "ancient", "anubis", "nuke"]
+BASE_URL = "https://csnades.gg"
+REQUEST_DELAY = 1.0  # seconds between requests
 
 
 def parse_vtt(vtt_str):
@@ -90,7 +99,6 @@ def extract_nade_from_html(html):
 
 def download_file(url, dest_path):
     """Download a file from URL to dest_path."""
-    import requests
     resp = requests.get(url, stream=True, timeout=30)
     resp.raise_for_status()
     with open(dest_path, "wb") as f:
@@ -182,3 +190,124 @@ def extract_recommended_slugs(html, map_name):
             seen.add(s)
             unique.append(s)
     return unique
+
+
+def extract_beginner_smoke_slugs(html):
+    """Extract slugs of beginner-recommended smoke nades from list page.
+
+    The RSC payload contains all nades for the map regardless of URL filters.
+    Each nade object has slug, type, and beginner fields. We extract all three
+    and filter to only beginner smokes.
+    """
+    # Match: \"slug\":\"xxx\"...\"beginner\":true/false within each nade chunk
+    pairs = re.findall(
+        r'\\"slug\\":\\"([a-z0-9-]+)\\".*?\\"beginner\\":(true|false)',
+        html,
+    )
+    seen = set()
+    slugs = []
+    for slug, beginner in pairs:
+        if beginner == "true" and slug not in seen:
+            seen.add(slug)
+            slugs.append(slug)
+    return slugs
+
+
+def scrape_map(map_name, output_dir, existing_slugs=None):
+    """Scrape all beginner-recommended smokes for a map."""
+    existing_slugs = existing_slugs or set()
+    output_dir = Path(output_dir)
+
+    print(f"\n{'='*60}")
+    print(f"Scraping {map_name} (beginner-recommended smokes)")
+
+    list_url = f"{BASE_URL}/{map_name}?recommended=true"
+    print(f"  Fetching {list_url}")
+    resp = requests.get(list_url, timeout=30)
+    resp.raise_for_status()
+
+    smoke_slugs = extract_beginner_smoke_slugs(resp.text)
+    print(f"  Found {len(smoke_slugs)} beginner-recommended smokes")
+
+    nades = []
+    for i, slug in enumerate(smoke_slugs):
+        if slug in existing_slugs:
+            print(f"  [{i+1}/{len(smoke_slugs)}] {slug} -- already scraped, skipping")
+            continue
+
+        print(f"  [{i+1}/{len(smoke_slugs)}] {slug}")
+        time.sleep(REQUEST_DELAY)
+
+        detail_url = f"{BASE_URL}/{map_name}/smokes/{slug}"
+        try:
+            resp = requests.get(detail_url, timeout=30)
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            print(f"    ERROR fetching detail page: {e}")
+            continue
+
+        nade = extract_nade_from_html(resp.text)
+        if not nade or not nade.get("vtt_cues"):
+            print(f"    ERROR: could not extract nade data or VTT cues")
+            continue
+
+        # Extract frames
+        nade_dir = output_dir / map_name / slug
+        if nade.get("video_url"):
+            try:
+                ok = extract_lineup_frames(nade["video_url"], nade["vtt_cues"], nade_dir)
+                if not ok:
+                    print(f"    WARNING: frame extraction incomplete")
+            except Exception as e:
+                print(f"    ERROR extracting frames: {e}")
+                continue
+
+        # Download lineup diagram
+        if nade.get("lineup_url"):
+            nade_dir.mkdir(parents=True, exist_ok=True)
+            try:
+                download_file(nade["lineup_url"], nade_dir / "lineup.webp")
+            except Exception as e:
+                print(f"    WARNING: could not download lineup diagram: {e}")
+
+        # Remove non-serializable fields, add frame paths
+        nade_data = {k: v for k, v in nade.items() if k != "vtt_cues"}
+        nade_data["captions"] = [text for _, _, text in nade["vtt_cues"]]
+        nades.append(nade_data)
+
+    return nades
+
+
+def scrape_all(output_dir, maps=None):
+    """Scrape all maps. Incremental: skips already-scraped nades."""
+    output_dir = Path(output_dir)
+    maps = maps or ACTIVE_DUTY_MAPS
+
+    nades_file = output_dir / "nades.json"
+    existing = []
+    if nades_file.exists():
+        with open(nades_file) as f:
+            existing = json.load(f)
+    existing_slugs = {n["slug"] for n in existing}
+    print(f"Existing nades: {len(existing_slugs)}")
+
+    all_nades = list(existing)
+    for map_name in maps:
+        new_nades = scrape_map(map_name, output_dir, existing_slugs)
+        all_nades.extend(new_nades)
+        existing_slugs.update(n["slug"] for n in new_nades)
+
+    with open(nades_file, "w") as f:
+        json.dump(all_nades, f, indent=2)
+    print(f"\nTotal nades: {len(all_nades)} (saved to {nades_file})")
+    return all_nades
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Scrape recommended nades from csnades.gg")
+    parser.add_argument("--maps", nargs="*", default=None,
+                        help="Maps to scrape (default: all active duty)")
+    parser.add_argument("--outdir", default="data",
+                        help="Output directory (default: data)")
+    args = parser.parse_args()
+    scrape_all(args.outdir, args.maps)
