@@ -45,15 +45,27 @@ const modalData = nades.map(n => ({
       <div class="modal-frame">
         <img id="m-pos" alt="Position" />
         <p id="m-cap-pos"></p>
+        <div class="report-btns" data-frame="position">
+          <button class="report-btn" data-dir="earlier" title="Frame should be earlier">&#8592;</button>
+          <button class="report-btn" data-dir="later" title="Frame should be later">&#8594;</button>
+        </div>
       </div>
       <div class="modal-frame">
         <img id="m-aim" alt="Aim" />
         <p id="m-cap-aim"></p>
+        <div class="report-btns" data-frame="aim">
+          <button class="report-btn" data-dir="earlier" title="Frame should be earlier">&#8592;</button>
+          <button class="report-btn" data-dir="later" title="Frame should be later">&#8594;</button>
+        </div>
       </div>
       <div class="modal-frame">
         <video id="m-res-video" muted loop playsinline autoplay></video>
         <img id="m-res" alt="Result" style="display:none" />
         <p>Result</p>
+        <div class="report-btns" data-frame="result">
+          <button class="report-btn" data-dir="earlier" title="Frame should be earlier">&#8592;</button>
+          <button class="report-btn" data-dir="later" title="Frame should be later">&#8594;</button>
+        </div>
       </div>
     </div>
     <div class="modal-foot">
@@ -101,9 +113,18 @@ const modalData = nades.map(n => ({
   const mConsole = document.getElementById('m-console')!;
   const mSource = document.getElementById('m-source') as HTMLAnchorElement;
 
+  let currentModalSlug = '';
+
   function openModal(idx: number) {
     const d = data[idx];
     if (!d) return;
+
+    currentModalSlug = d.slug;
+
+    // Reset report button states from previous modal
+    document.querySelectorAll('.report-btn.reported').forEach(btn => {
+      btn.classList.remove('reported');
+    });
 
     mTitle.textContent = d.title;
 
@@ -205,6 +226,27 @@ const modalData = nades.map(n => ({
     card.addEventListener('click', () => {
       const idx = parseInt((card as HTMLElement).dataset.idx!, 10);
       openModal(idx);
+    });
+  });
+
+  // Report button handlers
+  document.querySelectorAll('.report-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const el = btn as HTMLElement;
+      const container = el.closest('.report-btns') as HTMLElement;
+      const frameType = container.dataset.frame!;
+      const direction = el.dataset.dir!;
+
+      const res = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: currentModalSlug, frameType, direction }),
+      });
+
+      if (res.ok) {
+        el.classList.add('reported');
+      }
     });
   });
 </script>
