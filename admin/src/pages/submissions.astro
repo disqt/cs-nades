@@ -1,0 +1,106 @@
+---
+import { getDb } from '../lib/db';
+
+interface Submission {
+  id: number;
+  status: string;
+  csnades_url: string | null;
+  slug: string | null;
+  map_name: string | null;
+  data: string | null;
+  submitted_at: number;
+}
+
+let submissions: Submission[] = [];
+
+try {
+  const db = getDb();
+  submissions = db.prepare("SELECT * FROM submissions ORDER BY submitted_at DESC").all() as Submission[];
+} catch {
+  // DB not available
+}
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submissions - CS Nades Admin</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #0d1117; color: #e6edf3; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { color: #58a6ff; }
+    .nav { display: flex; gap: 1rem; margin-bottom: 2rem; }
+    a { color: #58a6ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #30363d; }
+    th { color: #8b949e; font-size: 0.85rem; }
+    .status-pending { color: #d29922; }
+    .status-approved { color: #3fb950; }
+    .status-rejected { color: #f85149; }
+    .action-btn { padding: 0.25rem 0.75rem; border-radius: 0.25rem; border: 1px solid; cursor: pointer; font-size: 0.8rem; }
+    .approve-btn { background: #238636; border-color: #238636; color: #fff; }
+    .approve-btn:hover { background: #2ea043; }
+    .reject-btn { background: #da3633; border-color: #da3633; color: #fff; }
+    .reject-btn:hover { background: #f85149; }
+  </style>
+</head>
+<body>
+  <h1>Submissions</h1>
+  <div class="nav">
+    <a href="/">Dashboard</a>
+    <a href="/submissions">Submissions</a>
+    <a href="/reports">Reports</a>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Type</th>
+        <th>Map</th>
+        <th>Status</th>
+        <th>Submitted</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {submissions.map(s => (
+        <tr>
+          <td>#{s.id}</td>
+          <td>{s.csnades_url ? <a href={s.csnades_url} target="_blank">URL</a> : 'Screenshots'}</td>
+          <td>{s.map_name || '-'}</td>
+          <td class={`status-${s.status}`}>{s.status}</td>
+          <td>{new Date(s.submitted_at * 1000).toLocaleDateString()}</td>
+          <td>
+            {s.status === 'pending' && (
+              <>
+                <button class="action-btn approve-btn" data-id={s.id} data-action="approved">Approve</button>
+                <button class="action-btn reject-btn" data-id={s.id} data-action="rejected">Reject</button>
+              </>
+            )}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  <script>
+    document.querySelectorAll('.action-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const el = btn as HTMLElement;
+        const id = el.dataset.id;
+        const action = el.dataset.action;
+        const res = await fetch('/api/review', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: Number(id), status: action }),
+        });
+        if (res.ok) {
+          window.location.reload();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

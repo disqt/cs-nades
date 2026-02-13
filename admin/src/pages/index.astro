@@ -1,0 +1,52 @@
+---
+import { getDb } from '../lib/db';
+
+let pendingSubmissions = 0;
+let unreviewedReports = 0;
+
+try {
+  const db = getDb();
+  pendingSubmissions = (db.prepare("SELECT COUNT(*) as c FROM submissions WHERE status = 'pending'").get() as any).c;
+  unreviewedReports = (db.prepare("SELECT COUNT(DISTINCT slug) as c FROM reports").get() as any).c;
+} catch {
+  // DB not available
+}
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CS Nades Admin</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #0d1117; color: #e6edf3; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { color: #58a6ff; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 0.5rem; padding: 1.5rem; margin: 1rem 0; }
+    .card h2 { margin-top: 0; }
+    .count { font-size: 2rem; font-weight: bold; color: #58a6ff; }
+    a { color: #58a6ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .nav { display: flex; gap: 1rem; margin-bottom: 2rem; }
+  </style>
+</head>
+<body>
+  <h1>CS Nades Admin</h1>
+  <div class="nav">
+    <a href="/">Dashboard</a>
+    <a href="/submissions">Submissions</a>
+    <a href="/reports">Reports</a>
+  </div>
+
+  <div class="card">
+    <h2>Pending Submissions</h2>
+    <p class="count">{pendingSubmissions}</p>
+    <a href="/submissions">Review submissions &rarr;</a>
+  </div>
+
+  <div class="card">
+    <h2>Frame Reports</h2>
+    <p class="count">{unreviewedReports}</p>
+    <a href="/reports">Review reports &rarr;</a>
+  </div>
+</body>
+</html>

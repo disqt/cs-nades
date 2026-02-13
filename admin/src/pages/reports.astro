@@ -1,0 +1,107 @@
+---
+import { getDb } from '../lib/db';
+
+interface ReportGroup {
+  slug: string;
+  total: number;
+  position_earlier: number;
+  position_later: number;
+  aim_earlier: number;
+  aim_later: number;
+  result_earlier: number;
+  result_later: number;
+}
+
+let reportGroups: ReportGroup[] = [];
+
+try {
+  const db = getDb();
+  reportGroups = db.prepare(`
+    SELECT
+      slug,
+      COUNT(*) as total,
+      SUM(CASE WHEN frame_type = 'position' AND direction = 'earlier' THEN 1 ELSE 0 END) as position_earlier,
+      SUM(CASE WHEN frame_type = 'position' AND direction = 'later' THEN 1 ELSE 0 END) as position_later,
+      SUM(CASE WHEN frame_type = 'aim' AND direction = 'earlier' THEN 1 ELSE 0 END) as aim_earlier,
+      SUM(CASE WHEN frame_type = 'aim' AND direction = 'later' THEN 1 ELSE 0 END) as aim_later,
+      SUM(CASE WHEN frame_type = 'result' AND direction = 'earlier' THEN 1 ELSE 0 END) as result_earlier,
+      SUM(CASE WHEN frame_type = 'result' AND direction = 'later' THEN 1 ELSE 0 END) as result_later
+    FROM reports
+    GROUP BY slug
+    ORDER BY total DESC
+  `).all() as ReportGroup[];
+} catch {
+  // DB not available
+}
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports - CS Nades Admin</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #0d1117; color: #e6edf3; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { color: #58a6ff; }
+    .nav { display: flex; gap: 1rem; margin-bottom: 2rem; }
+    a { color: #58a6ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.75rem; text-align: center; border-bottom: 1px solid #30363d; }
+    th { color: #8b949e; font-size: 0.85rem; }
+    td:first-child { text-align: left; }
+    .dir-earlier { color: #f0883e; }
+    .dir-later { color: #58a6ff; }
+    .report-count { font-weight: bold; }
+    .empty { color: #484f58; text-align: center; padding: 2rem; }
+  </style>
+</head>
+<body>
+  <h1>Frame Reports</h1>
+  <div class="nav">
+    <a href="/">Dashboard</a>
+    <a href="/submissions">Submissions</a>
+    <a href="/reports">Reports</a>
+  </div>
+
+  {reportGroups.length === 0 ? (
+    <p class="empty">No reports yet.</p>
+  ) : (
+    <table>
+      <thead>
+        <tr>
+          <th>Nade</th>
+          <th>Total</th>
+          <th colspan="2">Position</th>
+          <th colspan="2">Aim</th>
+          <th colspan="2">Result</th>
+        </tr>
+        <tr>
+          <th></th>
+          <th></th>
+          <th class="dir-earlier">&larr;</th>
+          <th class="dir-later">&rarr;</th>
+          <th class="dir-earlier">&larr;</th>
+          <th class="dir-later">&rarr;</th>
+          <th class="dir-earlier">&larr;</th>
+          <th class="dir-later">&rarr;</th>
+        </tr>
+      </thead>
+      <tbody>
+        {reportGroups.map(r => (
+          <tr>
+            <td>{r.slug}</td>
+            <td class="report-count">{r.total}</td>
+            <td class="dir-earlier">{r.position_earlier || '-'}</td>
+            <td class="dir-later">{r.position_later || '-'}</td>
+            <td class="dir-earlier">{r.aim_earlier || '-'}</td>
+            <td class="dir-later">{r.aim_later || '-'}</td>
+            <td class="dir-earlier">{r.result_earlier || '-'}</td>
+            <td class="dir-later">{r.result_later || '-'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+</body>
+</html>
