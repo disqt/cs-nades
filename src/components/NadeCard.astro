@@ -1,0 +1,44 @@
+---
+import type { Nade } from '../lib/nades';
+
+interface Props {
+  nade: Nade;
+  idx: number;
+}
+
+const { nade, idx } = Astro.props;
+const title = `${nade.titleTo} from ${nade.titleFrom}`;
+const sideLabel = nade.team === 't' ? 'T' : 'CT';
+
+const TECHNIQUE_LABELS: Record<string, string> = {
+  left: 'Left Click', right: 'Right Click', left_jump: 'Jump Throw',
+  right_jump: 'Right + Jump', left_right: 'Left + Right',
+  run_left: 'Run + Left', run_right: 'Run + Right', run_left_jump: 'Run + Jump',
+};
+const technique = TECHNIQUE_LABELS[nade.technique] || nade.technique;
+
+const frameBase = `data/${nade.map}/${nade.slug}`;
+---
+
+<div
+  class="nade-card"
+  data-map={nade.map}
+  data-side={nade.team}
+  data-idx={idx}
+  data-slug={nade.slug}
+>
+  <img
+    class="card-img"
+    src={`${frameBase}/result.jpg`}
+    alt={title}
+    loading="lazy"
+  />
+  <div class="card-overlay">
+    <span class={`tag map-${nade.map}`}>{nade.map}</span>
+    <span class={`tag side-${nade.team}`}>{sideLabel}</span>
+  </div>
+  <div class="card-label">
+    <span class="card-title">{title}</span>
+    <span class="card-tech">{technique}</span>
+  </div>
+</div>

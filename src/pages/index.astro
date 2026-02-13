@@ -1,9 +1,52 @@
 ---
 import Layout from '../components/Layout.astro';
+import NadeCard from '../components/NadeCard.astro';
+import FilterBar from '../components/FilterBar.astro';
+import { loadNades, getMapsPresent, seededShuffle } from '../lib/nades';
+
+const allNades = loadNades();
+const nades = seededShuffle(allNades, allNades.length);
+const maps = getMapsPresent(nades);
 ---
+
 <Layout title="CS2 Grenade Lineups">
   <a class="back-link" href="/cs/">&larr; Back to notes</a>
   <h1>CS2 Grenade Lineups</h1>
   <p class="subtitle">Recommended lineups from <a href="https://csnades.gg">csnades.gg</a></p>
-  <p>Page under construction.</p>
+
+  <FilterBar maps={maps} total={nades.length} />
+
+  <div class="grid" id="cards">
+    {nades.map((n, i) => <NadeCard nade={n} idx={i} />)}
+  </div>
 </Layout>
+
+<script>
+  const activeFilters: Record<string, Set<string>> = { map: new Set(), side: new Set() };
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const el = btn as HTMLElement;
+      const type = el.dataset.filterType!;
+      const value = el.dataset.filterValue!;
+      el.classList.toggle('active');
+      activeFilters[type].has(value)
+        ? activeFilters[type].delete(value)
+        : activeFilters[type].add(value);
+      applyFilters();
+    });
+  });
+
+  function applyFilters() {
+    let v = 0;
+    document.querySelectorAll('.nade-card').forEach(c => {
+      const el = c as HTMLElement;
+      const show =
+        (activeFilters.map.size === 0 || activeFilters.map.has(el.dataset.map!)) &&
+        (activeFilters.side.size === 0 || activeFilters.side.has(el.dataset.side!));
+      el.classList.toggle('hidden', !show);
+      if (show) v++;
+    });
+    document.getElementById('visible-count')!.textContent = String(v);
+  }
+</script>

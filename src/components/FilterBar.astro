@@ -1,0 +1,21 @@
+---
+interface Props {
+  maps: string[];
+  total: number;
+}
+const { maps, total } = Astro.props;
+---
+
+<div class="filters">
+  <span class="filter-label">Map:</span>
+  {maps.map(m => (
+    <button class="filter-btn" data-filter-type="map" data-filter-value={m}>
+      {m}
+    </button>
+  ))}
+  <div class="filter-sep"></div>
+  <span class="filter-label">Side:</span>
+  <button class="filter-btn" data-filter-type="side" data-filter-value="t">T</button>
+  <button class="filter-btn" data-filter-type="side" data-filter-value="ct">CT</button>
+</div>
+<p class="count"><span id="visible-count">{total}</span> / {total} lineups</p>
