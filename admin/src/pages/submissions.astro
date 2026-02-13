@@ -44,6 +44,8 @@ try {
     .approve-btn:hover { background: #2ea043; }
     .reject-btn { background: #da3633; border-color: #da3633; color: #fff; }
     .reject-btn:hover { background: #f85149; }
+    .delete-btn { background: #484f58; border-color: #484f58; color: #fff; }
+    .delete-btn:hover { background: #6e7681; }
   </style>
 </head>
 <body>
@@ -82,6 +84,7 @@ try {
                 <button class="action-btn reject-btn" data-id={s.id} data-action="rejected">Reject</button>
               </>
             )}
+            <button class="action-btn delete-btn" data-id={s.id} data-action="deleted">Delete</button>
           </td>
         </tr>
       ))}
