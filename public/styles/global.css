@@ -1,0 +1,55 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; padding: 1rem 1.25rem 3rem; max-width: 1400px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 0.2rem; }
+.subtitle { color: #8b949e; margin-bottom: 1.25rem; font-size: 0.85rem; }
+.subtitle a { color: #58a6ff; text-decoration: none; }
+.filters { margin-bottom: 1rem; display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.filter-label { color: #8b949e; font-size: 0.8rem; margin-right: 0.2rem; }
+.filter-btn { background: #21262d; border: 1px solid #30363d; color: #e6edf3; padding: 0.25rem 0.65rem; border-radius: 1rem; cursor: pointer; font-size: 0.75rem; transition: all 0.15s; text-transform: capitalize; }
+.filter-btn:hover { border-color: #58a6ff; }
+.filter-btn.active { background: #1f6feb; border-color: #1f6feb; }
+.filter-sep { width: 1px; height: 1.4rem; background: #30363d; margin: 0 0.2rem; }
+.count { color: #8b949e; font-size: 0.8rem; margin-bottom: 1rem; }
+.back-link { display: inline-block; margin-bottom: 0.75rem; color: #58a6ff; text-decoration: none; font-size: 0.8rem; }
+
+/* Grid */
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+@media (max-width: 1100px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 750px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 440px) { .grid { grid-template-columns: 1fr; } }
+
+/* Card */
+.nade-card { background: #161b22; border: 1px solid #21262d; border-radius: 0.5rem; overflow: hidden; cursor: pointer; transition: border-color 0.15s, transform 0.15s; position: relative; }
+.nade-card:hover { border-color: #30363d; transform: translateY(-2px); }
+.nade-card.hidden { display: none; }
+.card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+.card-overlay { position: absolute; top: 0.4rem; left: 0.4rem; display: flex; gap: 0.25rem; }
+.card-label { padding: 0.5rem 0.6rem; }
+.card-title { display: block; font-size: 0.8rem; font-weight: 600; line-height: 1.3; color: #f0f6fc; }
+.card-tech { font-size: 0.7rem; color: #8b949e; }
+.tag { display: inline-block; font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 0.75rem; background: rgba(33,38,45,0.85); color: #8b949e; backdrop-filter: blur(4px); text-transform: capitalize; }
+.side-t { background: rgba(61,31,0,0.85); color: #f0883e; }
+.side-ct { background: rgba(12,45,107,0.85); color: #58a6ff; }
+
+/* Modal */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
+.modal-bg.open { display: flex; }
+.modal { background: #161b22; border: 1px solid #30363d; border-radius: 0.75rem; max-width: 1300px; width: 100%; max-height: 95vh; overflow-y: auto; position: relative; }
+.modal-close { position: absolute; top: 0.75rem; right: 0.75rem; background: none; border: none; color: #8b949e; font-size: 1.5rem; cursor: pointer; z-index: 2; line-height: 1; padding: 0.25rem; }
+.modal-close:hover { color: #e6edf3; }
+.modal-head { padding: 1.25rem 1.25rem 0.75rem; }
+.modal-head h2 { font-size: 1.15rem; margin-bottom: 0.4rem; }
+.modal-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+.modal-tags .tag { font-size: 0.7rem; padding: 0.15rem 0.5rem; }
+.modal-frames { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; padding: 0 1.25rem; }
+.modal-frame img { width: 100%; border-radius: 0.35rem; cursor: pointer; }
+.modal-frame img:hover { opacity: 0.85; }
+.modal-frame p { font-size: 0.75rem; color: #8b949e; margin-top: 0.3rem; text-align: center; line-height: 1.3; }
+.modal-foot { padding: 0.75rem 1.25rem 1.25rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; }
+.console-cmd { display: block; flex: 1; min-width: 0; background: #0d1117; border: 1px solid #21262d; padding: 0.4rem 0.6rem; border-radius: 0.25rem; font-size: 0.7rem; color: #8b949e; word-break: break-all; cursor: pointer; font-family: monospace; }
+.console-cmd:hover { color: #e6edf3; border-color: #58a6ff; }
+.source-link { font-size: 0.75rem; color: #58a6ff; text-decoration: none; white-space: nowrap; }
+@media (max-width: 600px) {
+  .modal-frames { grid-template-columns: 1fr; }
+  .modal { border-radius: 0; max-height: 100vh; }
+}

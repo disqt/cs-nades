@@ -1,0 +1,20 @@
+{
+  "name": "cs-nades",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "astro": "^5.0.0",
+    "@astrojs/node": "^9.0.0",
+    "better-sqlite3": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "vitest": "^3.0.0",
+    "typescript": "^5.7.0"
+  }
+}
