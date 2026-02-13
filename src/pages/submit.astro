@@ -1,0 +1,103 @@
+---
+import Layout from '../components/Layout.astro';
+
+const maps = ['mirage', 'dust2', 'inferno', 'overpass', 'ancient', 'anubis', 'nuke'];
+---
+
+<Layout title="Submit a Lineup">
+  <a class="back-link" href="/">&larr; Back to lineups</a>
+  <h1>Submit a Lineup</h1>
+  <p class="subtitle">Share a grenade lineup for the community</p>
+
+  <div class="submit-form-container">
+    <div class="submit-mode-toggle">
+      <button class="mode-btn active" data-mode="url" id="mode-url-btn">csnades.gg URL</button>
+      <button class="mode-btn" data-mode="screenshots" id="mode-ss-btn">Upload Screenshots</button>
+    </div>
+
+    <form id="submit-form" enctype="multipart/form-data">
+      <div class="form-section" id="url-section">
+        <label for="csnades_url">csnades.gg URL</label>
+        <input type="url" name="csnades_url" id="csnades_url"
+               placeholder="https://csnades.gg/mirage/smokes/example-slug"
+               pattern="https://csnades\.gg/.*" />
+      </div>
+
+      <div class="form-section hidden" id="ss-section">
+        <label for="map-select">Map</label>
+        <select name="map" id="map-select">
+          <option value="">Select a map...</option>
+          {maps.map(m => <option value={m}>{m}</option>)}
+        </select>
+
+        <label>Position Screenshot</label>
+        <input type="file" name="position" accept="image/*" />
+
+        <label>Aim Screenshot</label>
+        <input type="file" name="aim" accept="image/*" />
+
+        <label>Result Screenshot</label>
+        <input type="file" name="result" accept="image/*" />
+      </div>
+
+      <button type="submit" class="submit-btn" id="submit-btn">Submit Lineup</button>
+      <p class="submit-status" id="submit-status"></p>
+    </form>
+  </div>
+</Layout>
+
+<script>
+  const urlBtn = document.getElementById('mode-url-btn')!;
+  const ssBtn = document.getElementById('mode-ss-btn')!;
+  const urlSection = document.getElementById('url-section')!;
+  const ssSection = document.getElementById('ss-section')!;
+  const form = document.getElementById('submit-form') as HTMLFormElement;
+  const status = document.getElementById('submit-status')!;
+
+  urlBtn.addEventListener('click', () => {
+    urlBtn.classList.add('active');
+    ssBtn.classList.remove('active');
+    urlSection.classList.remove('hidden');
+    ssSection.classList.add('hidden');
+  });
+
+  ssBtn.addEventListener('click', () => {
+    ssBtn.classList.add('active');
+    urlBtn.classList.remove('active');
+    ssSection.classList.remove('hidden');
+    urlSection.classList.add('hidden');
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    status.textContent = 'Submitting...';
+    status.className = 'submit-status';
+
+    const formData = new FormData(form);
+    // Remove empty fields from the inactive mode
+    if (urlBtn.classList.contains('active')) {
+      formData.delete('position');
+      formData.delete('aim');
+      formData.delete('result');
+      formData.delete('map');
+    } else {
+      formData.delete('csnades_url');
+    }
+
+    try {
+      const res = await fetch('/api/submissions', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (res.ok) {
+        status.textContent = 'Submitted! Thanks for contributing.';
+        status.classList.add('success');
+        form.reset();
+      } else {
+        status.textContent = data.error || 'Submission failed';
+        status.classList.add('error');
+      }
+    } catch {
+      status.textContent = 'Network error, please try again';
+      status.classList.add('error');
+    }
+  });
+</script>

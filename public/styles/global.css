@@ -107,3 +107,79 @@ h1 { font-size: 1.5rem; margin-bottom: 0.2rem; }
 .bookmark-btn { position: absolute; top: 0.4rem; right: 0.4rem; background: rgba(33,38,45,0.85); border: 1px solid transparent; color: #8b949e; font-size: 1rem; padding: 0.1rem 0.35rem; border-radius: 0.5rem; cursor: pointer; z-index: 2; backdrop-filter: blur(4px); transition: all 0.15s; line-height: 1; }
 .bookmark-btn:hover { color: #f87171; border-color: #f87171; }
 .bookmark-btn.bookmarked { color: #f87171; }
+
+/* Generic hidden */
+.hidden { display: none; }
+
+/* Submit page */
+.submit-form-container {
+  max-width: 600px;
+  margin: 2rem auto;
+}
+.submit-mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.mode-btn {
+  flex: 1;
+  padding: 0.75rem;
+  background: #161b22;
+  border: 1px solid #30363d;
+  color: #8b949e;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.15s;
+}
+.mode-btn.active {
+  background: #1f6feb;
+  border-color: #1f6feb;
+  color: #fff;
+}
+.form-section label {
+  display: block;
+  margin: 1rem 0 0.25rem;
+  color: #e6edf3;
+  font-size: 0.85rem;
+}
+.form-section input[type="url"],
+.form-section select {
+  width: 100%;
+  padding: 0.5rem;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 0.375rem;
+  color: #e6edf3;
+  font-size: 0.9rem;
+}
+.form-section input[type="file"] {
+  color: #8b949e;
+  font-size: 0.85rem;
+}
+.submit-btn {
+  margin-top: 1.5rem;
+  width: 100%;
+  padding: 0.75rem;
+  background: #238636;
+  border: 1px solid #238636;
+  border-radius: 0.5rem;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.submit-btn:hover { background: #2ea043; }
+.submit-status { margin-top: 0.75rem; font-size: 0.85rem; text-align: center; }
+.submit-status.success { color: #3fb950; }
+.submit-status.error { color: #f85149; }
+
+/* Submit link */
+.submit-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: #58a6ff;
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+.submit-link:hover { text-decoration: underline; }
