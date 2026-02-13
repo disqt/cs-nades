@@ -16,7 +16,7 @@ const frameBase = `data/${nade.map}/${nade.slug}`;
 ---
 
 <div
-  class="nade-card"
+  class={`nade-card${bookmarked ? ' bookmarked-card' : ''}`}
   data-map={nade.map}
   data-side={nade.team}
   data-idx={idx}

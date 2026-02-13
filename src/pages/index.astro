@@ -116,6 +116,8 @@ const bookmarkedSet = new Set(bookmarkedSlugs);
         if (res.status === 401) return;
         const data = await res.json();
         el.classList.toggle('bookmarked', data.bookmarked);
+        const card = el.closest('.nade-card') as HTMLElement;
+        if (card) card.classList.toggle('bookmarked-card', data.bookmarked);
         if (bookmarkFilterActive) applyFilters();
       } catch {
         // ignore network errors
