@@ -10,6 +10,7 @@ export const POST: APIRoute = async ({ request }) => {
   const formData = await request.formData();
   const csnadesUrl = formData.get('csnades_url') as string | null;
   const mapName = formData.get('map') as string | null;
+  const side = formData.get('side') as string | null;
 
   const hasScreenshots = formData.has('position') && formData.has('aim') && formData.has('result');
 
@@ -41,6 +42,13 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
+  if (side && !['t', 'ct'].includes(side)) {
+    return new Response(JSON.stringify({ error: 'Invalid side value' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   // Validate file sizes before processing
   if (hasScreenshots) {
     for (const name of ['position', 'aim', 'result']) {
@@ -62,8 +70,8 @@ export const POST: APIRoute = async ({ request }) => {
 
   const db = getDb();
   const result = db.prepare(
-    'INSERT INTO submissions (csnades_url, map_name, data) VALUES (?, ?, ?)'
-  ).run(csnadesUrl, mapName, JSON.stringify({ hasScreenshots: !!hasScreenshots }));
+    'INSERT INTO submissions (csnades_url, map_name, side, data) VALUES (?, ?, ?, ?)'
+  ).run(csnadesUrl, mapName, side, JSON.stringify({ hasScreenshots: !!hasScreenshots }));
 
   // Save screenshots to staging directory if uploaded
   if (hasScreenshots) {

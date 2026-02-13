@@ -30,6 +30,13 @@ const maps = ['mirage', 'dust2', 'inferno', 'overpass', 'ancient', 'anubis', 'nu
           {maps.map(m => <option value={m}>{m}</option>)}
         </select>
 
+        <label for="side-select">Side</label>
+        <select name="side" id="side-select">
+          <option value="">Select a side...</option>
+          <option value="t">T (Terrorist)</option>
+          <option value="ct">CT (Counter-Terrorist)</option>
+        </select>
+
         <label>Position Screenshot</label>
         <input type="file" name="position" accept="image/*" />
 
@@ -80,6 +87,7 @@ const maps = ['mirage', 'dust2', 'inferno', 'overpass', 'ancient', 'anubis', 'nu
       formData.delete('aim');
       formData.delete('result');
       formData.delete('map');
+      formData.delete('side');
     } else {
       formData.delete('csnades_url');
     }

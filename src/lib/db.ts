@@ -44,9 +44,17 @@ export function initSchema(db: Database.Database): void {
       csnades_url TEXT,
       slug TEXT,
       map_name TEXT,
+      side TEXT,
       data TEXT,
       submitted_at INTEGER NOT NULL DEFAULT (unixepoch()),
       reviewed_at INTEGER
     );
   `);
+
+  // Migration: add side column to existing DBs
+  try {
+    db.exec('ALTER TABLE submissions ADD COLUMN side TEXT');
+  } catch {
+    // Column already exists -- ignore
+  }
 }

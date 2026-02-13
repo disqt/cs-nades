@@ -7,6 +7,7 @@ interface Submission {
   csnades_url: string | null;
   slug: string | null;
   map_name: string | null;
+  side: string | null;
   data: string | null;
   submitted_at: number;
 }
@@ -59,6 +60,7 @@ try {
         <th>ID</th>
         <th>Type</th>
         <th>Map</th>
+        <th>Side</th>
         <th>Status</th>
         <th>Submitted</th>
         <th>Actions</th>
@@ -70,6 +72,7 @@ try {
           <td>#{s.id}</td>
           <td>{s.csnades_url ? <a href={s.csnades_url} target="_blank">URL</a> : 'Screenshots'}</td>
           <td>{s.map_name || '-'}</td>
+          <td>{s.side ? s.side.toUpperCase() : '-'}</td>
           <td class={`status-${s.status}`}>{s.status}</td>
           <td>{new Date(s.submitted_at * 1000).toLocaleDateString()}</td>
           <td>
