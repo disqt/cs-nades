@@ -273,6 +273,25 @@ def extract_beginner_smoke_slugs(html):
     return slugs
 
 
+MIN_NADES_PER_MAP = 8
+
+
+def get_slugs_for_map_with_fallback(beginner_slugs, all_recommended_slugs, min_count=MIN_NADES_PER_MAP):
+    """Use beginner slugs, but fill with non-beginner recommended if below threshold."""
+    if len(beginner_slugs) >= min_count:
+        return beginner_slugs
+
+    result = list(beginner_slugs)
+    seen = set(beginner_slugs)
+    for slug in all_recommended_slugs:
+        if slug not in seen:
+            result.append(slug)
+            seen.add(slug)
+        if len(result) >= min_count:
+            break
+    return result
+
+
 def scrape_map(map_name, output_dir, existing_slugs=None):
     """Scrape all beginner-recommended smokes for a map."""
     existing_slugs = existing_slugs or set()
@@ -286,8 +305,14 @@ def scrape_map(map_name, output_dir, existing_slugs=None):
     resp = requests.get(list_url, timeout=30)
     resp.raise_for_status()
 
-    smoke_slugs = extract_beginner_smoke_slugs(resp.text)
-    print(f"  Found {len(smoke_slugs)} beginner-recommended smokes")
+    beginner_slugs = extract_beginner_smoke_slugs(resp.text)
+    all_recommended = extract_recommended_slugs(resp.text, map_name)
+    smoke_slugs = get_slugs_for_map_with_fallback(beginner_slugs, all_recommended)
+
+    if len(beginner_slugs) < len(smoke_slugs):
+        print(f"  Found {len(beginner_slugs)} beginner smokes, filled to {len(smoke_slugs)} with recommended")
+    else:
+        print(f"  Found {len(smoke_slugs)} beginner-recommended smokes")
 
     nades = []
     for i, slug in enumerate(smoke_slugs):

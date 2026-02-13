@@ -8,6 +8,7 @@ from scrape_nades import (
     extract_nade_from_html,
     extract_recommended_slugs,
     extract_beginner_smoke_slugs,
+    get_slugs_for_map_with_fallback,
     generate_thumbnail,
     extract_result_clip,
 )
@@ -137,3 +138,24 @@ def test_extract_result_clip(tmp_path):
     full_size = (output_dir / "result.mp4").stat().st_size
     thumb_size = (output_dir / "result_thumb.mp4").stat().st_size
     assert thumb_size < full_size
+
+
+def test_beginner_fallback_logic():
+    """When beginner nades < threshold, should fill with recommended."""
+    beginner = ["slug-a", "slug-b"]
+    all_recommended = ["slug-a", "slug-b", "slug-c", "slug-d", "slug-e",
+                       "slug-f", "slug-g", "slug-h", "slug-i", "slug-j"]
+    result = get_slugs_for_map_with_fallback(beginner, all_recommended, min_count=8)
+    assert len(result) == 8
+    assert result[:2] == ["slug-a", "slug-b"]  # Beginner first
+    # No duplicates
+    assert len(result) == len(set(result))
+
+
+def test_beginner_fallback_no_fill_needed():
+    """When beginner nades >= threshold, should return beginner as-is."""
+    beginner = ["slug-a", "slug-b", "slug-c", "slug-d", "slug-e",
+                "slug-f", "slug-g", "slug-h", "slug-i"]
+    all_recommended = beginner + ["slug-j", "slug-k"]
+    result = get_slugs_for_map_with_fallback(beginner, all_recommended, min_count=8)
+    assert result == beginner  # No change
