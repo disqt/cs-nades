@@ -207,7 +207,7 @@ def extract_beginner_smoke_slugs(html):
     seen = set()
     slugs = []
     for slug, beginner in pairs:
-        if beginner == "true" and slug not in seen:
+        if beginner == "true" and slug not in seen and slug not in ACTIVE_DUTY_MAPS:
             seen.add(slug)
             slugs.append(slug)
     return slugs
