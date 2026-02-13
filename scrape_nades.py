@@ -119,6 +119,58 @@ def extract_frame(video_path, timestamp_s, output_path):
     subprocess.run(cmd, capture_output=True, check=True)
 
 
+def generate_thumbnail(input_path, width=400):
+    """Generate a thumbnail version of an image using ffmpeg.
+
+    Creates a scaled-down copy with '_thumb' suffix (e.g. result_thumb.jpg).
+    """
+    p = Path(input_path)
+    thumb_path = p.parent / (p.stem + "_thumb" + p.suffix)
+    cmd = [
+        "ffmpeg", "-y", "-i", str(input_path),
+        "-vf", f"scale={width}:-1",
+        "-q:v", "4",
+        str(thumb_path),
+    ]
+    subprocess.run(cmd, capture_output=True, check=True)
+    return str(thumb_path)
+
+
+def extract_result_clip(video_path, timestamp_s, output_dir, duration=4.0):
+    """Extract a short clip around the result timestamp.
+
+    Starts 1s before the timestamp, runs for 4s total.
+    Generates both full-res and thumbnail (400px) versions.
+    """
+    output_dir = Path(output_dir)
+    start = max(0, timestamp_s - 1.0)
+
+    # Full resolution clip
+    full_clip = output_dir / "result.mp4"
+    cmd = [
+        "ffmpeg", "-y",
+        "-ss", f"{start:.3f}", "-i", str(video_path),
+        "-t", f"{duration:.3f}",
+        "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+        "-an", "-movflags", "+faststart",
+        str(full_clip),
+    ]
+    subprocess.run(cmd, capture_output=True, check=True)
+
+    # Thumbnail clip (400px wide)
+    thumb_clip = output_dir / "result_thumb.mp4"
+    cmd_thumb = [
+        "ffmpeg", "-y",
+        "-ss", f"{start:.3f}", "-i", str(video_path),
+        "-t", f"{duration:.3f}",
+        "-vf", "scale=400:-2",
+        "-c:v", "libx264", "-preset", "fast", "-crf", "28",
+        "-an", "-movflags", "+faststart",
+        str(thumb_clip),
+    ]
+    subprocess.run(cmd_thumb, capture_output=True, check=True)
+
+
 def extract_lineup_frames(video_url, vtt_cues, output_dir):
     """Download video, extract position/aim/result frames based on VTT cues.
 
@@ -145,16 +197,24 @@ def extract_lineup_frames(video_url, vtt_cues, output_dir):
         pos_ts = (vtt_cues[0][0] + vtt_cues[0][1]) / 2
         print(f"  Position frame at {pos_ts:.2f}s ({vtt_cues[0][2]})")
         extract_frame(tmp_video, pos_ts, output_dir / "position.jpg")
+        generate_thumbnail(output_dir / "position.jpg")
 
         # Aim frame: midpoint of second cue
         aim_ts = (vtt_cues[1][0] + vtt_cues[1][1]) / 2
         print(f"  Aim frame at {aim_ts:.2f}s ({vtt_cues[1][2]})")
         extract_frame(tmp_video, aim_ts, output_dir / "aim.jpg")
+        generate_thumbnail(output_dir / "aim.jpg")
 
         # Result frame: 2s after last cue ends
         result_ts = vtt_cues[-1][1] + 2.0
         print(f"  Result frame at {result_ts:.2f}s (after last cue)")
         extract_frame(tmp_video, result_ts, output_dir / "result.jpg")
+        generate_thumbnail(output_dir / "result.jpg")
+
+        # Result video clip (~4s centered on result timestamp)
+        duration = 4.0
+        print(f"  Result clip at {result_ts:.2f}s ({duration}s)")
+        extract_result_clip(tmp_video, result_ts, output_dir)
 
         return True
     finally:

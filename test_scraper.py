@@ -1,7 +1,16 @@
 import os
 import re
+import shutil
+import subprocess
 import pytest
-from scrape_nades import parse_vtt, extract_nade_from_html, extract_recommended_slugs, extract_beginner_smoke_slugs
+from scrape_nades import (
+    parse_vtt,
+    extract_nade_from_html,
+    extract_recommended_slugs,
+    extract_beginner_smoke_slugs,
+    generate_thumbnail,
+    extract_result_clip,
+)
 
 
 def test_parse_vtt_basic():
@@ -84,3 +93,47 @@ def test_extract_beginner_smoke_slugs():
     # Much fewer than total nades on the page
     all_slugs = extract_recommended_slugs(html, "mirage")
     assert len(slugs) < len(all_slugs), "Beginner subset should be smaller than all nades"
+
+
+def test_generate_thumbnail(tmp_path):
+    """Test thumbnail generation with ffmpeg."""
+    if not shutil.which("ffmpeg"):
+        pytest.skip("ffmpeg not available")
+
+    # Create a test image using ffmpeg (generate a solid color frame)
+    test_img = tmp_path / "test.jpg"
+    subprocess.run([
+        "ffmpeg", "-y", "-f", "lavfi", "-i", "color=c=red:s=800x450:d=1",
+        "-frames:v", "1", "-q:v", "2", str(test_img)
+    ], capture_output=True, check=True)
+
+    thumb = generate_thumbnail(str(test_img), 400)
+    assert os.path.exists(thumb)
+    assert "_thumb" in thumb
+    assert thumb.endswith(".jpg")
+
+
+def test_extract_result_clip(tmp_path):
+    """Test result clip extraction with ffmpeg."""
+    if not shutil.which("ffmpeg"):
+        pytest.skip("ffmpeg not available")
+
+    # Create a 6-second test video
+    test_video = tmp_path / "test_video.mp4"
+    subprocess.run([
+        "ffmpeg", "-y", "-f", "lavfi", "-i", "color=c=blue:s=640x360:d=6",
+        "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+        str(test_video)
+    ], capture_output=True, check=True)
+
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+
+    extract_result_clip(str(test_video), 3.0, str(output_dir))
+
+    assert (output_dir / "result.mp4").exists()
+    assert (output_dir / "result_thumb.mp4").exists()
+    # Thumbnail should be smaller than full resolution
+    full_size = (output_dir / "result.mp4").stat().st_size
+    thumb_size = (output_dir / "result_thumb.mp4").stat().st_size
+    assert thumb_size < full_size
