@@ -1,6 +1,7 @@
 import os
+import re
 import pytest
-from scrape_nades import parse_vtt, extract_nade_from_html
+from scrape_nades import parse_vtt, extract_nade_from_html, extract_recommended_slugs
 
 
 def test_parse_vtt_basic():
@@ -48,3 +49,31 @@ def test_extract_nade_from_detail_page():
     assert "setpos" in nade["console"]
     assert len(nade["vtt_cues"]) >= 2
     assert nade["asset_id"] == "mirage-smoke-EHvVQ0Ebqm"
+
+
+def test_extract_recommended_slugs():
+    fixture = os.path.join(os.path.dirname(__file__), "test_fixture_list.html")
+    if not os.path.exists(fixture):
+        pytest.skip("fixture not available")
+    with open(fixture, encoding="utf-8") as f:
+        html = f.read()
+
+    slugs = extract_recommended_slugs(html, "mirage")
+
+    # Should find a substantial number of recommended nades
+    assert len(slugs) >= 10, f"Expected at least 10 slugs, got {len(slugs)}"
+
+    # Known slugs from the mirage recommended page
+    assert "ticket-booth-from-tetris" in slugs
+    assert "top-mid-from-t-spawn" in slugs
+
+    # All slugs should be lowercase alphanumeric with hyphens only
+    for slug in slugs:
+        assert re.match(r"^[a-z0-9-]+$", slug), f"Invalid slug format: {slug!r}"
+
+    # No duplicates
+    assert len(slugs) == len(set(slugs)), "Slugs should be unique"
+
+    # Should not contain map names or navigation slugs
+    assert "mirage" not in slugs
+    assert "dust2" not in slugs

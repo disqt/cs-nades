@@ -82,3 +82,34 @@ def extract_nade_from_html(html):
         "lineup_url": f"https://assets.csnades.gg/nades/{asset_id}/lineup.webp" if asset_id else None,
         "source_url": f"https://csnades.gg/{map_name}/{nade_type}s/{slug}",
     }
+
+
+def extract_recommended_slugs(html, map_name):
+    """Extract all nade slugs from a csnades.gg list page.
+
+    The list page embeds nade data in Next.js RSC payload chunks as escaped JSON.
+    Each nade object has an id like "nade_<hex>" followed by a "slug" field.
+    We match this pattern to filter out non-nade slugs (map names, nav items).
+
+    Args:
+        html: Full HTML of the list page (e.g. https://csnades.gg/mirage?recommended=true)
+        map_name: Map name (e.g. "mirage") -- reserved for future filtering.
+
+    Returns:
+        List of slug strings (e.g. ["ticket-booth-from-tetris", "top-mid-from-t-spawn", ...])
+    """
+    # RSC payload contains escaped JSON: \"id\":\"nade_xxx\",\"slug\":\"slug-name\"
+    # In the HTML file, \" is a literal backslash + quote (two chars).
+    # The regex matches this escaped pattern to extract only nade slugs.
+    slugs = re.findall(
+        r'\\"id\\":\\"nade_[a-f0-9]+\\",\\"slug\\":\\"([a-z0-9-]+)\\"',
+        html,
+    )
+    # Deduplicate while preserving order (RSC data may repeat chunks)
+    seen = set()
+    unique = []
+    for s in slugs:
+        if s not in seen:
+            seen.add(s)
+            unique.append(s)
+    return unique
