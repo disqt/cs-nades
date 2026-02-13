@@ -155,14 +155,14 @@ h1 {{ font-size: 1.5rem; margin-bottom: 0.2rem; }}
 /* Modal */
 .modal-bg {{ display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }}
 .modal-bg.open {{ display: flex; }}
-.modal {{ background: #161b22; border: 1px solid #30363d; border-radius: 0.75rem; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; }}
+.modal {{ background: #161b22; border: 1px solid #30363d; border-radius: 0.75rem; max-width: 1300px; width: 100%; max-height: 95vh; overflow-y: auto; position: relative; }}
 .modal-close {{ position: absolute; top: 0.75rem; right: 0.75rem; background: none; border: none; color: #8b949e; font-size: 1.5rem; cursor: pointer; z-index: 2; line-height: 1; padding: 0.25rem; }}
 .modal-close:hover {{ color: #e6edf3; }}
 .modal-head {{ padding: 1.25rem 1.25rem 0.75rem; }}
 .modal-head h2 {{ font-size: 1.15rem; margin-bottom: 0.4rem; }}
 .modal-tags {{ display: flex; gap: 0.3rem; flex-wrap: wrap; }}
 .modal-tags .tag {{ font-size: 0.7rem; padding: 0.15rem 0.5rem; }}
-.modal-frames {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; padding: 0 1.25rem; }}
+.modal-frames {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; padding: 0 1.25rem; }}
 .modal-frame img {{ width: 100%; border-radius: 0.35rem; cursor: pointer; }}
 .modal-frame img:hover {{ opacity: 0.85; }}
 .modal-frame p {{ font-size: 0.75rem; color: #8b949e; margin-top: 0.3rem; text-align: center; line-height: 1.3; }}
