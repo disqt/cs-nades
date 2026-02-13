@@ -1,0 +1,77 @@
+---
+interface Props {
+  loggedIn: boolean;
+}
+const { loggedIn } = Astro.props;
+---
+
+<div class="identity-bar">
+  {loggedIn ? (
+    <span style="display: flex; align-items: center; gap: 0.5rem;">
+      <span style="color: #8b949e; font-size: 0.8rem;">Logged in</span>
+      <button id="logout-btn" class="filter-btn" style="font-size: 0.7rem;">Log out</button>
+    </span>
+  ) : (
+    <button id="login-btn" class="filter-btn" style="font-size: 0.75rem;">Log in for bookmarks</button>
+  )}
+</div>
+
+<div class="login-overlay" id="login-overlay" style="display: none;">
+  <div class="login-box">
+    <h3>Enter your secret nickname</h3>
+    <p style="color: #8b949e; font-size: 0.8rem; margin-bottom: 0.5rem;">
+      This is your passphrase. Use the same nickname to access your bookmarks on any device.
+    </p>
+    <input type="text" id="nickname-input" placeholder="e.g. purple-tiger-42" minlength="3" autocomplete="off" />
+    <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem; justify-content: flex-end;">
+      <button id="login-cancel" class="filter-btn">Cancel</button>
+      <button id="login-enter" class="filter-btn" style="background: #1f6feb; border-color: #1f6feb;">Enter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const overlay = document.getElementById('login-overlay')!;
+  const input = document.getElementById('nickname-input') as HTMLInputElement;
+
+  document.getElementById('login-btn')?.addEventListener('click', () => {
+    overlay.style.display = 'flex';
+    input.value = '';
+    input.focus();
+  });
+
+  document.getElementById('login-cancel')?.addEventListener('click', () => {
+    overlay.style.display = 'none';
+  });
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.style.display = 'none';
+  });
+
+  async function doLogin() {
+    const nickname = input.value.trim();
+    if (nickname.length < 3) {
+      input.style.borderColor = '#f85149';
+      return;
+    }
+    const res = await fetch('/api/identity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nickname }),
+    });
+    if (res.ok) {
+      window.location.reload();
+    }
+  }
+
+  document.getElementById('login-enter')?.addEventListener('click', doLogin);
+
+  input?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  document.getElementById('logout-btn')?.addEventListener('click', async () => {
+    await fetch('/api/identity', { method: 'DELETE' });
+    window.location.reload();
+  });
+</script>
