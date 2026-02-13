@@ -19,6 +19,17 @@ export interface Nade {
 }
 
 const MAPS_ORDER = ['mirage', 'dust2', 'inferno', 'overpass', 'ancient', 'anubis', 'nuke'];
+
+export const TECHNIQUE_LABELS: Record<string, string> = {
+  left: 'Left Click',
+  right: 'Right Click',
+  left_jump: 'Jump Throw',
+  right_jump: 'Right + Jump',
+  left_right: 'Left + Right',
+  run_left: 'Run + Left',
+  run_right: 'Run + Right',
+  run_left_jump: 'Run + Jump',
+};
 const DATA_DIR = import.meta.env.NADES_DATA_DIR || 'public/data';
 
 let _cache: Nade[] | null = null;

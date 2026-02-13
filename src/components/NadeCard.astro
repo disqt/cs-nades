@@ -1,5 +1,5 @@
 ---
-import type { Nade } from '../lib/nades';
+import { TECHNIQUE_LABELS, type Nade } from '../lib/nades';
 
 interface Props {
   nade: Nade;
@@ -9,12 +9,6 @@ interface Props {
 const { nade, idx } = Astro.props;
 const title = `${nade.titleTo} from ${nade.titleFrom}`;
 const sideLabel = nade.team === 't' ? 'T' : 'CT';
-
-const TECHNIQUE_LABELS: Record<string, string> = {
-  left: 'Left Click', right: 'Right Click', left_jump: 'Jump Throw',
-  right_jump: 'Right + Jump', left_right: 'Left + Right',
-  run_left: 'Run + Left', run_right: 'Run + Right', run_left_jump: 'Run + Jump',
-};
 const technique = TECHNIQUE_LABELS[nade.technique] || nade.technique;
 
 const frameBase = `data/${nade.map}/${nade.slug}`;
