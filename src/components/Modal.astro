@@ -246,6 +246,10 @@ const modalData = nades.map(n => ({
       });
 
       if (res.ok) {
+        // Deselect sibling (mutually exclusive: earlier OR later, not both)
+        container.querySelectorAll('.report-btn').forEach(sibling => {
+          sibling.classList.remove('reported');
+        });
         el.classList.add('reported');
       }
     });
