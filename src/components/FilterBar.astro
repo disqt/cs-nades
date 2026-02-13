@@ -2,8 +2,9 @@
 interface Props {
   maps: string[];
   total: number;
+  loggedIn?: boolean;
 }
-const { maps, total } = Astro.props;
+const { maps, total, loggedIn = false } = Astro.props;
 ---
 
 <div class="filters">
@@ -17,5 +18,13 @@ const { maps, total } = Astro.props;
   <span class="filter-label">Side:</span>
   <button class="filter-btn" data-filter-type="side" data-filter-value="t">T</button>
   <button class="filter-btn" data-filter-type="side" data-filter-value="ct">CT</button>
+  {loggedIn && (
+    <>
+      <div class="filter-sep"></div>
+      <button class="filter-btn" id="bookmark-filter" data-filter-type="bookmark" data-filter-value="true">
+        My Lineups
+      </button>
+    </>
+  )}
 </div>
 <p class="count"><span id="visible-count">{total}</span> / {total} lineups</p>

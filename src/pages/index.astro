@@ -11,6 +11,19 @@ const allNades = loadNades();
 const nades = seededShuffle(allNades, allNades.length);
 const maps = getMapsPresent(nades);
 const accountHash = getAccountHash(Astro.request);
+
+let bookmarkedSlugs: string[] = [];
+if (accountHash) {
+  try {
+    const { getDb } = await import('../lib/db');
+    const db = getDb();
+    const rows = db.prepare('SELECT slug FROM bookmarks WHERE account_hash = ?').all(accountHash) as { slug: string }[];
+    bookmarkedSlugs = rows.map(r => r.slug);
+  } catch {
+    // better-sqlite3 not available (build time) -- ignore
+  }
+}
+const bookmarkedSet = new Set(bookmarkedSlugs);
 ---
 
 <Layout title="CS2 Grenade Lineups">
@@ -19,10 +32,10 @@ const accountHash = getAccountHash(Astro.request);
   <p class="subtitle">Recommended lineups from <a href="https://csnades.gg">csnades.gg</a></p>
 
   <IdentityBar loggedIn={!!accountHash} />
-  <FilterBar maps={maps} total={nades.length} />
+  <FilterBar maps={maps} total={nades.length} loggedIn={!!accountHash} />
 
   <div class="grid" id="cards">
-    {nades.map((n, i) => <NadeCard nade={n} idx={i} />)}
+    {nades.map((n, i) => <NadeCard nade={n} idx={i} bookmarked={bookmarkedSet.has(n.slug)} />)}
   </div>
 
   <Modal nades={nades} />
@@ -30,16 +43,23 @@ const accountHash = getAccountHash(Astro.request);
 
 <script>
   const activeFilters: Record<string, Set<string>> = { map: new Set(), side: new Set() };
+  let bookmarkFilterActive = false;
 
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const el = btn as HTMLElement;
       const type = el.dataset.filterType!;
       const value = el.dataset.filterValue!;
-      el.classList.toggle('active');
-      activeFilters[type].has(value)
-        ? activeFilters[type].delete(value)
-        : activeFilters[type].add(value);
+
+      if (type === 'bookmark') {
+        bookmarkFilterActive = !bookmarkFilterActive;
+        el.classList.toggle('active', bookmarkFilterActive);
+      } else {
+        el.classList.toggle('active');
+        activeFilters[type].has(value)
+          ? activeFilters[type].delete(value)
+          : activeFilters[type].add(value);
+      }
       applyFilters();
     });
   });
@@ -48,12 +68,35 @@ const accountHash = getAccountHash(Astro.request);
     let v = 0;
     document.querySelectorAll('.nade-card').forEach(c => {
       const el = c as HTMLElement;
-      const show =
-        (activeFilters.map.size === 0 || activeFilters.map.has(el.dataset.map!)) &&
-        (activeFilters.side.size === 0 || activeFilters.side.has(el.dataset.side!));
+      const matchesMap = activeFilters.map.size === 0 || activeFilters.map.has(el.dataset.map!);
+      const matchesSide = activeFilters.side.size === 0 || activeFilters.side.has(el.dataset.side!);
+      const matchesBookmark = !bookmarkFilterActive || el.querySelector('.bookmark-btn.bookmarked') !== null;
+      const show = matchesMap && matchesSide && matchesBookmark;
       el.classList.toggle('hidden', !show);
       if (show) v++;
     });
     document.getElementById('visible-count')!.textContent = String(v);
   }
+
+  // Bookmark button click handler
+  document.querySelectorAll('.bookmark-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const el = btn as HTMLElement;
+      const slug = el.dataset.slug;
+      try {
+        const res = await fetch('/api/bookmarks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug }),
+        });
+        if (res.status === 401) return;
+        const data = await res.json();
+        el.classList.toggle('bookmarked', data.bookmarked);
+        if (bookmarkFilterActive) applyFilters();
+      } catch {
+        // ignore network errors
+      }
+    });
+  });
 </script>
