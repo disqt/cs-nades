@@ -6,3 +6,4 @@ test_nades.json
 node_modules/
 dist/
 .astro/
+*.db
