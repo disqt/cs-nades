@@ -1,5 +1,5 @@
 ---
-import { TECHNIQUE_LABELS, TECHNIQUE_ICONS, COMMUNITY_ICON, isCommunityNade, type Nade } from '../lib/nades';
+import { decomposeTechnique, TECHNIQUE_LABELS, ICON_FLAG, ICON_COMMUNITY, isCommunityNade, type Nade, type TechComponent } from '../lib/nades';
 
 interface Props {
   nades: Nade[];
@@ -7,20 +7,11 @@ interface Props {
 
 const { nades } = Astro.props;
 
-function techClass(t: string): string {
-  if (['left', 'right'].includes(t)) return 'tech-simple';
-  if (['left_jump', 'right_jump'].includes(t)) return 'tech-jump';
-  if (['run_left', 'run_right'].includes(t)) return 'tech-run';
-  return 'tech-complex';
-}
-
 const modalData = nades.map(n => ({
   title: `${n.titleTo} from ${n.titleFrom}`,
   map: n.map,
   side: n.team === 't' ? 'T' : 'CT',
-  technique: TECHNIQUE_LABELS[n.technique] || n.technique,
-  techClass: techClass(n.technique),
-  techIcon: TECHNIQUE_ICONS[n.technique] || '',
+  techComponents: decomposeTechnique(n.technique),
   isCommunity: isCommunityNade(n),
   movement: n.movement,
   console: n.console,
@@ -34,7 +25,8 @@ const modalData = nades.map(n => ({
   slug: n.slug,
 }));
 
-const communityIconSvg = COMMUNITY_ICON;
+const flagIconSvg = ICON_FLAG;
+const communityIconSvg = ICON_COMMUNITY;
 ---
 
 <div class="modal-bg" id="modal-bg">
@@ -42,7 +34,7 @@ const communityIconSvg = COMMUNITY_ICON;
     <button class="modal-close" id="modal-close">&times;</button>
     <div class="modal-head">
       <h2 id="m-title"></h2>
-      <span class="technique-pill" id="m-technique"></span>
+      <div class="technique-badges" id="m-technique"></div>
       <div class="modal-tags" id="m-tags"></div>
     </div>
     <div class="modal-frames">
@@ -73,10 +65,14 @@ const communityIconSvg = COMMUNITY_ICON;
       </div>
     </div>
     <div class="modal-foot">
-      <code class="console-cmd" id="m-console" title="Click to copy"></code>
+      <button class="setpos-btn" id="m-setpos" title="Click to copy setpos command">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg>
+        Copy setpos
+      </button>
       <a class="source-link" id="m-source" target="_blank" rel="noopener">csnades.gg &#8599;</a>
-      <button class="lineup-report-btn" id="lineup-report-btn" title="Report this lineup">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+      <button class="report-lineup-btn" id="lineup-report-btn" title="Report this lineup">
+        <span class="tech-icon" id="report-icon"></span>
+        Report
       </button>
       <div class="lineup-report-dropdown" id="lineup-report-dropdown" style="display:none">
         <button data-reason="outdated">Outdated</button>
@@ -88,8 +84,9 @@ const communityIconSvg = COMMUNITY_ICON;
   </div>
 </div>
 
-<script define:vars={{ modalData, communityIconSvg }}>
+<script define:vars={{ modalData, flagIconSvg, communityIconSvg }}>
   window.__modalData = modalData;
+  window.__flagIconSvg = flagIconSvg;
   window.__communityIconSvg = communityIconSvg;
 </script>
 
@@ -99,9 +96,7 @@ const communityIconSvg = COMMUNITY_ICON;
     title: string;
     map: string;
     side: string;
-    technique: string;
-    techClass: string;
-    techIcon: string;
+    techComponents: Array<{icon: string; label: string}>;
     isCommunity: boolean;
     movement: string;
     console: string;
@@ -128,8 +123,11 @@ const communityIconSvg = COMMUNITY_ICON;
   const mResVideo = document.getElementById('m-res-video') as HTMLVideoElement;
   const mCapPos = document.getElementById('m-cap-pos')!;
   const mCapAim = document.getElementById('m-cap-aim')!;
-  const mConsole = document.getElementById('m-console')!;
+  const mSetpos = document.getElementById('m-setpos')!;
+  const reportIcon = document.getElementById('report-icon')!;
   const mSource = document.getElementById('m-source') as HTMLAnchorElement;
+
+  reportIcon.innerHTML = (window as any).__flagIconSvg; // safe: compile-time constant
 
   let currentModalSlug = '';
 
@@ -152,19 +150,20 @@ const communityIconSvg = COMMUNITY_ICON;
 
     mTitle.textContent = d.title;
 
-    // Build technique pill with icon + text (avoid innerHTML for scraped text)
+    // Build technique badges (decomposed components)
     mTechnique.innerHTML = '';
-    if (d.techIcon) {
+    for (const comp of d.techComponents) {
+      const badge = document.createElement('span');
+      badge.className = 'technique-badge';
       const iconSpan = document.createElement('span');
-      iconSpan.className = 'tech-icon tech-icon-md';
-      iconSpan.innerHTML = d.techIcon; // safe: compile-time SVG constant from nades.ts
-      mTechnique.appendChild(iconSpan);
+      iconSpan.className = 'tech-icon tech-icon-lg';
+      iconSpan.innerHTML = comp.icon; // safe: compile-time SVG constant
+      badge.appendChild(iconSpan);
+      const label = document.createElement('span');
+      label.textContent = comp.label;
+      badge.appendChild(label);
+      mTechnique.appendChild(badge);
     }
-    const techLabel = document.createElement('span');
-    techLabel.textContent = d.technique; // safe: uses textContent, not innerHTML
-    mTechnique.appendChild(techLabel);
-    mTechnique.className = `technique-pill ${d.techClass}`;
-    mTechnique.title = d.technique;
 
     mTags.innerHTML = '';
     const mapTag = document.createElement('span');
@@ -210,7 +209,7 @@ const communityIconSvg = COMMUNITY_ICON;
     resFrame.dataset.videoSrc = d.resultVideo;
     resFrame.dataset.hasVideo = 'unknown'; // will be determined on first hover/touch
 
-    mConsole.textContent = d.console;
+    mSetpos.dataset.cmd = d.console;
     mSource.href = d.source;
 
     bg.classList.add('open');
@@ -331,13 +330,14 @@ const communityIconSvg = COMMUNITY_ICON;
     stopVideoPlayback();
   });
 
-  // Copy console command
-  mConsole.addEventListener('click', () => {
-    const text = mConsole.textContent || '';
+  // Collapsed setpos: copy on click
+  mSetpos.addEventListener('click', () => {
+    const text = mSetpos.dataset.cmd || '';
     navigator.clipboard.writeText(text).then(() => {
-      const original = mConsole.textContent;
-      mConsole.textContent = 'Copied!';
-      setTimeout(() => { mConsole.textContent = original; }, 1200);
+      mSetpos.textContent = 'Copied!';
+      setTimeout(() => {
+        mSetpos.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg> Copy setpos';
+      }, 1200);
     });
   });
 
