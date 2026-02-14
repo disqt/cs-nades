@@ -59,8 +59,8 @@ const modalData = nades.map(n => ({
         </div>
       </div>
       <div class="modal-frame">
-        <video id="m-res-video" muted loop playsinline autoplay></video>
-        <img id="m-res" alt="Result" style="display:none" />
+        <video id="m-res-video" muted loop playsinline style="display:none"></video>
+        <img id="m-res" alt="Result" />
         <p>Result</p>
         <div class="report-btns" data-frame="result">
           <button class="report-btn" data-dir="earlier" title="Frame should be earlier">&#8592;</button>
@@ -155,36 +155,48 @@ const modalData = nades.map(n => ({
     mCapPos.textContent = d.capPos;
     mCapAim.textContent = d.capAim;
 
-    // Result: try video first, fall back to image
-    mResVideo.style.display = '';
-    mRes.style.display = 'none';
-    mResVideo.onerror = () => {
-      mResVideo.style.display = 'none';
-      mRes.style.display = '';
-      mRes.src = d.result;
-    };
-    mResVideo.src = d.resultVideo;
-    mResVideo.play().catch(() => {
-      mResVideo.style.display = 'none';
-      mRes.style.display = '';
-      mRes.src = d.result;
-    });
+    // Result: show still image by default, store video src for hover/touch
+    mResVideo.style.display = 'none';
+    mResVideo.removeAttribute('src');
+    mRes.style.display = '';
+    mRes.src = d.result;
+    // Store video URL for lazy loading on hover/touch
+    const resFrame = mResVideo.closest('.modal-frame') as HTMLElement;
+    resFrame.dataset.videoSrc = d.resultVideo;
+    resFrame.dataset.hasVideo = 'unknown'; // will be determined on first hover/touch
 
     mConsole.textContent = d.console;
     mSource.href = d.source;
 
     bg.classList.add('open');
     document.body.style.overflow = 'hidden';
+
+    // Push history state so back button closes modal
+    history.pushState({ modal: true, slug: d.slug }, '');
   }
 
+  let closingFromPopstate = false;
+
   function closeModal() {
+    // Guard: already closed
+    if (!bg.classList.contains('open')) return;
+
     bg.classList.remove('open');
     document.body.style.overflow = '';
-    // Stop video download
+
+    // Stop video and clean up
     mResVideo.onerror = null;
     mResVideo.pause();
     mResVideo.removeAttribute('src');
     mResVideo.load();
+    mResVideo.style.display = 'none';
+    mRes.style.display = '';
+
+    // Navigate back unless this close was triggered by popstate
+    if (!closingFromPopstate) {
+      history.back();
+    }
+    closingFromPopstate = false;
   }
 
   // Close on background click (not modal content)
@@ -198,6 +210,80 @@ const modalData = nades.map(n => ({
   // Escape key
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();
+  });
+
+  // Back button closes modal instead of navigating away
+  window.addEventListener('popstate', () => {
+    if (bg.classList.contains('open')) {
+      closingFromPopstate = true;
+      closeModal();
+    }
+  });
+
+  // --- Hold-to-play video on result frame ---
+  const resultFrame = mResVideo.closest('.modal-frame') as HTMLElement;
+
+  function startVideoPlayback() {
+    const videoSrc = resultFrame.dataset.videoSrc;
+    if (!videoSrc || resultFrame.dataset.hasVideo === 'no') return;
+
+    mResVideo.onerror = () => {
+      // Video doesn't exist, mark so we don't try again
+      resultFrame.dataset.hasVideo = 'no';
+      mResVideo.style.display = 'none';
+      mRes.style.display = '';
+    };
+
+    if (!mResVideo.src || mResVideo.src !== new URL(videoSrc, window.location.href).href) {
+      mResVideo.src = videoSrc;
+    }
+
+    mResVideo.style.display = '';
+    mRes.style.display = 'none';
+    mResVideo.currentTime = 0;
+    mResVideo.play().catch(() => {
+      // Play failed (no video or browser restriction)
+      resultFrame.dataset.hasVideo = 'no';
+      mResVideo.style.display = 'none';
+      mRes.style.display = '';
+    });
+  }
+
+  function stopVideoPlayback() {
+    mResVideo.pause();
+    mResVideo.style.display = 'none';
+    mRes.style.display = '';
+  }
+
+  // Desktop: hover-to-play (only on devices with hover capability)
+  const hoverQuery = window.matchMedia('(hover: hover)');
+  if (hoverQuery.matches) {
+    resultFrame.addEventListener('mouseenter', () => {
+      if (!bg.classList.contains('open')) return;
+      startVideoPlayback();
+    });
+    resultFrame.addEventListener('mouseleave', () => {
+      if (!bg.classList.contains('open')) return;
+      stopVideoPlayback();
+    });
+  }
+
+  // Mobile: touch-and-hold to play
+  resultFrame.addEventListener('touchstart', (e) => {
+    if (!bg.classList.contains('open')) return;
+    e.preventDefault(); // prevent ghost click / scroll
+    startVideoPlayback();
+  }, { passive: false });
+
+  resultFrame.addEventListener('touchend', (e) => {
+    if (!bg.classList.contains('open')) return;
+    e.preventDefault();
+    stopVideoPlayback();
+  }, { passive: false });
+
+  resultFrame.addEventListener('touchcancel', () => {
+    if (!bg.classList.contains('open')) return;
+    stopVideoPlayback();
   });
 
   // Copy console command
