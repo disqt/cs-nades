@@ -37,6 +37,27 @@ const maps = ['mirage', 'dust2', 'inferno', 'overpass', 'ancient', 'anubis', 'nu
           <option value="ct">CT (Counter-Terrorist)</option>
         </select>
 
+        <label for="lineup-name">Lineup Name</label>
+        <input type="text" name="lineup_name" id="lineup-name"
+               placeholder="e.g. T Spawn to A Site" required />
+
+        <label for="stand-desc">Stand Description</label>
+        <input type="text" name="stand_desc" id="stand-desc"
+               placeholder="e.g. Corner of T spawn box" required />
+
+        <label for="aim-desc">Aim Description</label>
+        <input type="text" name="aim_desc" id="aim-desc"
+               placeholder="e.g. Align crosshair with antenna tip" required />
+
+        <label for="throw-type">Throw Type</label>
+        <select name="throw_type" id="throw-type" required>
+          <option value="">Select throw type...</option>
+          <option value="left">Left click</option>
+          <option value="right">Right click</option>
+          <option value="left_jump">Jump throw</option>
+          <option value="run_left">Running throw</option>
+        </select>
+
         <label>Position Screenshot</label>
         <input type="file" name="position" accept="image/*" />
 
@@ -61,19 +82,26 @@ const maps = ['mirage', 'dust2', 'inferno', 'overpass', 'ancient', 'anubis', 'nu
   const form = document.getElementById('submit-form') as HTMLFormElement;
   const status = document.getElementById('submit-status')!;
 
-  urlBtn.addEventListener('click', () => {
-    urlBtn.classList.add('active');
-    ssBtn.classList.remove('active');
-    urlSection.classList.remove('hidden');
-    ssSection.classList.add('hidden');
-  });
+  const ssRequiredFields = ssSection.querySelectorAll('[required]');
 
-  ssBtn.addEventListener('click', () => {
-    ssBtn.classList.add('active');
-    urlBtn.classList.remove('active');
-    ssSection.classList.remove('hidden');
-    urlSection.classList.add('hidden');
-  });
+  function setMode(mode: 'url' | 'screenshots') {
+    const isUrl = mode === 'url';
+    urlBtn.classList.toggle('active', isUrl);
+    ssBtn.classList.toggle('active', !isUrl);
+    urlSection.classList.toggle('hidden', !isUrl);
+    ssSection.classList.toggle('hidden', isUrl);
+    // Toggle required on screenshot fields so hidden inputs don't block submission
+    ssRequiredFields.forEach(el => {
+      if (isUrl) el.removeAttribute('required');
+      else el.setAttribute('required', '');
+    });
+  }
+
+  urlBtn.addEventListener('click', () => setMode('url'));
+  ssBtn.addEventListener('click', () => setMode('screenshots'));
+
+  // Initial state: URL mode is active, so strip required from hidden screenshot fields
+  setMode('url');
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -88,6 +116,18 @@ const maps = ['mirage', 'dust2', 'inferno', 'overpass', 'ancient', 'anubis', 'nu
       formData.delete('result');
       formData.delete('map');
       formData.delete('side');
+      formData.delete('lineup_name');
+      formData.delete('stand_desc');
+      formData.delete('aim_desc');
+      formData.delete('throw_type');
+
+      // Validate csnades.gg URL
+      const url = formData.get('csnades_url') as string;
+      if (!url || !url.startsWith('https://csnades.gg/')) {
+        status.textContent = 'URL must be a valid csnades.gg link (https://csnades.gg/...)';
+        status.classList.add('error');
+        return;
+      }
     } else {
       formData.delete('csnades_url');
     }
