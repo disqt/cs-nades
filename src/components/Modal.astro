@@ -152,9 +152,17 @@ const communityIconSvg = COMMUNITY_ICON;
 
     mTitle.textContent = d.title;
 
-    // Build technique pill with icon + text
-    const iconHtml = d.techIcon ? `<span class="tech-icon tech-icon-md">${d.techIcon}</span>` : '';
-    mTechnique.innerHTML = `${iconHtml}<span>${d.technique}</span>`;
+    // Build technique pill with icon + text (avoid innerHTML for scraped text)
+    mTechnique.innerHTML = '';
+    if (d.techIcon) {
+      const iconSpan = document.createElement('span');
+      iconSpan.className = 'tech-icon tech-icon-md';
+      iconSpan.innerHTML = d.techIcon; // safe: compile-time SVG constant from nades.ts
+      mTechnique.appendChild(iconSpan);
+    }
+    const techLabel = document.createElement('span');
+    techLabel.textContent = d.technique; // safe: uses textContent, not innerHTML
+    mTechnique.appendChild(techLabel);
     mTechnique.className = `technique-pill ${d.techClass}`;
     mTechnique.title = d.technique;
 
@@ -180,7 +188,10 @@ const communityIconSvg = COMMUNITY_ICON;
       const communityTag = document.createElement('span');
       communityTag.className = 'tag community-badge';
       communityTag.title = 'Community submitted';
-      communityTag.innerHTML = `${communityIcon} Community`;
+      const cIconSpan = document.createElement('span');
+      cIconSpan.innerHTML = communityIcon; // safe: compile-time SVG constant
+      communityTag.appendChild(cIconSpan);
+      communityTag.appendChild(document.createTextNode(' Community'));
       mTags.appendChild(communityTag);
     }
 

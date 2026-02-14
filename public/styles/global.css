@@ -25,7 +25,7 @@ h1 { font-size: 1.5rem; margin-bottom: 0.2rem; }
 .card-overlay { position: absolute; top: 0.4rem; left: 0.4rem; display: flex; gap: 0.25rem; z-index: 2; }
 .card-label { padding: 0.5rem 0.6rem; }
 .card-title { display: block; font-size: 0.8rem; font-weight: 600; line-height: 1.3; color: #f0f6fc; }
-.card-tech { font-size: 0.7rem; color: #8b949e; }
+.card-tech { font-size: 0.7rem; color: #8b949e; display: inline-flex; align-items: center; gap: 0; }
 .tag { display: inline-block; font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 0.75rem; background: rgba(33,38,45,0.85); color: #8b949e; backdrop-filter: blur(4px); text-transform: capitalize; }
 .side-t { background: rgba(61,31,0,0.85); color: #f0883e; }
 .side-ct { background: rgba(12,45,107,0.85); color: #58a6ff; }
@@ -60,7 +60,6 @@ h1 { font-size: 1.5rem; margin-bottom: 0.2rem; }
 .tech-icon svg { width: 1em; height: 1em; }
 .tech-icon-sm { font-size: 14px; margin-right: 0.2rem; }
 .tech-icon-md { font-size: 18px; margin-right: 0.35rem; }
-.card-tech { display: inline-flex; align-items: center; gap: 0; }
 .card-tech-text { font-size: 0.7rem; color: #8b949e; }
 
 /* Community badge */

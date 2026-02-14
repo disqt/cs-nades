@@ -137,7 +137,7 @@ def generate_thumbnail(input_path, width=400):
     return str(thumb_path)
 
 
-def extract_result_clip(video_path, start_s, output_dir, duration=6.0):
+def extract_result_clip(video_path, start_s, output_dir, duration=3.0):
     """Extract a short clip starting at start_s.
 
     Generates both full-res and thumbnail (400px) versions.
