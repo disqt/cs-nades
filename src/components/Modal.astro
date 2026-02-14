@@ -1,5 +1,5 @@
 ---
-import { decomposeTechnique, TECHNIQUE_LABELS, ICON_FLAG, ICON_COMMUNITY, isCommunityNade, type Nade, type TechComponent } from '../lib/nades';
+import { decomposeTechnique, ICON_FLAG, ICON_COMMUNITY, isCommunityNade, type Nade, type TechComponent } from '../lib/nades';
 
 interface Props {
   nades: Nade[];
@@ -66,7 +66,7 @@ const communityIconSvg = ICON_COMMUNITY;
     </div>
     <div class="modal-foot">
       <button class="setpos-btn" id="m-setpos" title="Click to copy setpos command">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19.4 20H9.6C9.26863 20 9 19.7314 9 19.4V9.6C9 9.26863 9.26863 9 9.6 9H19.4C19.7314 9 20 9.26863 20 9.6V19.4C20 19.7314 19.7314 20 19.4 20Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 9V4.6C15 4.26863 14.7314 4 14.4 4H4.6C4.26863 4 4 4.26863 4 4.6V14.4C4 14.7314 4.26863 15 4.6 15H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Copy setpos
       </button>
       <a class="source-link" id="m-source" target="_blank" rel="noopener">csnades.gg &#8599;</a>
@@ -331,13 +331,12 @@ const communityIconSvg = ICON_COMMUNITY;
   });
 
   // Collapsed setpos: copy on click
+  const setposOriginalHTML = mSetpos.innerHTML;
   mSetpos.addEventListener('click', () => {
     const text = mSetpos.dataset.cmd || '';
     navigator.clipboard.writeText(text).then(() => {
       mSetpos.textContent = 'Copied!';
-      setTimeout(() => {
-        mSetpos.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg> Copy setpos';
-      }, 1200);
+      setTimeout(() => { mSetpos.innerHTML = setposOriginalHTML; }, 1200);
     });
   });
 

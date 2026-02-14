@@ -61,8 +61,6 @@ export function decomposeTechnique(key: string): TechComponent[] {
   return components;
 }
 
-export const COMMUNITY_ICON = ICON_COMMUNITY;
-
 export function isCommunityNade(nade: Nade): boolean {
   return !nade.source_url.includes('csnades.gg');
 }

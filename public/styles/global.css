@@ -73,9 +73,7 @@ h1 { font-size: 1.5rem; margin-bottom: 0.2rem; }
 .tech-icon { display: inline-flex; align-items: center; vertical-align: middle; flex-shrink: 0; }
 .tech-icon svg { width: 1em; height: 1em; }
 .tech-icon-sm { font-size: 14px; margin-right: 0.2rem; }
-.tech-icon-md { font-size: 18px; margin-right: 0.35rem; }
 .tech-icon-lg { font-size: 22px; margin-right: 0.15rem; }
-.card-tech-text { font-size: 0.7rem; color: #8b949e; }
 
 /* Community badge */
 .community-badge { display: inline-flex; align-items: center; gap: 0.2rem; color: #a78bfa; font-size: 0.65rem; }
