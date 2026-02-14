@@ -71,8 +71,7 @@ const { loggedIn } = Astro.props;
     if (e.key === 'Enter') doLogin();
   });
 
-  document.getElementById('logout-btn')?.addEventListener('click', async () => {
-    await fetch(`${base}api/identity`, { method: 'DELETE' });
-    window.location.reload();
+  document.getElementById('logout-btn')?.addEventListener('click', () => {
+    window.location.href = `${base}api/logout`;
   });
 </script>
