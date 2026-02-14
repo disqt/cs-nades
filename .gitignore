@@ -7,4 +7,8 @@ node_modules/
 dist/
 .astro/
 *.db
+*.sqlite
+*.sqlite3
 staging/
+.env
+.env.*
