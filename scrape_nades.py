@@ -5,6 +5,7 @@ import re
 import subprocess
 import tempfile
 import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from urllib.parse import unquote
 
@@ -174,8 +175,8 @@ def extract_lineup_frames(video_url, vtt_cues, output_dir):
     """Download video, extract position/aim/result frames based on VTT cues.
 
     Frame selection:
-    - position: midpoint of first caption (usually "Stand at X")
-    - aim: midpoint of second caption (usually "Aim at Y")
+    - position: 2/3 into first caption (usually "Stand at X")
+    - aim: 2/3 into second caption (usually "Aim at Y")
     - result: 2 seconds after last caption ends (smoke has landed)
     """
     output_dir = Path(output_dir)
@@ -192,14 +193,14 @@ def extract_lineup_frames(video_url, vtt_cues, output_dir):
         print(f"  Downloading video...")
         download_file(video_url, tmp_video)
 
-        # Position frame: midpoint of first cue
-        pos_ts = (vtt_cues[0][0] + vtt_cues[0][1]) / 2
+        # Position frame: 2/3 into first cue
+        pos_ts = vtt_cues[0][0] + (vtt_cues[0][1] - vtt_cues[0][0]) * 2 / 3
         print(f"  Position frame at {pos_ts:.2f}s ({vtt_cues[0][2]})")
         extract_frame(tmp_video, pos_ts, output_dir / "position.jpg")
         generate_thumbnail(output_dir / "position.jpg")
 
-        # Aim frame: midpoint of second cue
-        aim_ts = (vtt_cues[1][0] + vtt_cues[1][1]) / 2
+        # Aim frame: 2/3 into second cue
+        aim_ts = vtt_cues[1][0] + (vtt_cues[1][1] - vtt_cues[1][0]) * 2 / 3
         print(f"  Aim frame at {aim_ts:.2f}s ({vtt_cues[1][2]})")
         extract_frame(tmp_video, aim_ts, output_dir / "aim.jpg")
         generate_thumbnail(output_dir / "aim.jpg")
@@ -210,12 +211,9 @@ def extract_lineup_frames(video_url, vtt_cues, output_dir):
         extract_frame(tmp_video, result_ts, output_dir / "result.jpg")
         generate_thumbnail(output_dir / "result.jpg")
 
-        # Result video clip: from aim cue midpoint through result
-        # Shows the throw animation, grenade flight, and landing
-        aim_mid = (vtt_cues[1][0] + vtt_cues[1][1]) / 2
-        clip_start = max(0, aim_mid)
-        clip_duration = min(8.0, result_ts - clip_start + 2.0)
-        clip_duration = max(clip_duration, 4.0)  # at least 4s
+        # Result video clip: 3s clip ending ~1s after result frame
+        clip_start = max(0, result_ts - 2.0)
+        clip_duration = 3.0
         print(f"  Result clip from {clip_start:.2f}s ({clip_duration:.1f}s)")
         extract_result_clip(tmp_video, clip_start, output_dir, duration=clip_duration)
 
@@ -366,8 +364,14 @@ def scrape_map(map_name, output_dir, existing_slugs=None):
     return nades
 
 
+def _scrape_map_worker(args):
+    """Worker function for parallel map scraping."""
+    map_name, output_dir, existing_slugs = args
+    return scrape_map(map_name, output_dir, existing_slugs)
+
+
 def scrape_all(output_dir, maps=None):
-    """Scrape all maps. Incremental: skips already-scraped nades."""
+    """Scrape all maps in parallel. Incremental: skips already-scraped nades."""
     output_dir = Path(output_dir)
     maps = maps or ACTIVE_DUTY_MAPS
 
@@ -380,10 +384,21 @@ def scrape_all(output_dir, maps=None):
     print(f"Existing nades: {len(existing_slugs)}")
 
     all_nades = list(existing)
-    for map_name in maps:
-        new_nades = scrape_map(map_name, output_dir, existing_slugs)
-        all_nades.extend(new_nades)
-        existing_slugs.update(n["slug"] for n in new_nades)
+
+    # Scrape maps in parallel (one worker per map)
+    worker_args = [(map_name, output_dir, existing_slugs) for map_name in maps]
+    with ProcessPoolExecutor(max_workers=len(maps)) as executor:
+        futures = {
+            executor.submit(_scrape_map_worker, args): args[0]
+            for args in worker_args
+        }
+        for future in as_completed(futures):
+            map_name = futures[future]
+            try:
+                new_nades = future.result()
+                all_nades.extend(new_nades)
+            except Exception as e:
+                print(f"\nERROR scraping {map_name}: {e}")
 
     with open(nades_file, "w") as f:
         json.dump(all_nades, f, indent=2)
