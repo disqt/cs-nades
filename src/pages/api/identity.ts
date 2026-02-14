@@ -24,7 +24,7 @@ export const POST: APIRoute = async ({ request }) => {
     status: 200,
     headers: {
       'Content-Type': 'application/json',
-      'Set-Cookie': `nades_account=${hash}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 365}`,
+      'Set-Cookie': `nades_account=${hash}; Path=/cs/nades/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 365}`,
     },
   });
 };
@@ -34,7 +34,7 @@ export const DELETE: APIRoute = async () => {
     status: 200,
     headers: {
       'Content-Type': 'application/json',
-      'Set-Cookie': 'nades_account=; Path=/; HttpOnly; Max-Age=0',
+      'Set-Cookie': 'nades_account=; Path=/cs/nades/; HttpOnly; SameSite=Lax; Max-Age=0',
     },
   });
 };
