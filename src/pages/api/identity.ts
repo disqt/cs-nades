@@ -32,9 +32,10 @@ export const POST: APIRoute = async ({ request }) => {
 export const DELETE: APIRoute = async () => {
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
-    headers: {
-      'Content-Type': 'application/json',
-      'Set-Cookie': 'nades_account=; Path=/cs/nades/; HttpOnly; SameSite=Lax; Max-Age=0',
-    },
+    headers: new Headers([
+      ['Content-Type', 'application/json'],
+      ['Set-Cookie', 'nades_account=; Path=/cs/nades/; HttpOnly; SameSite=Lax; Max-Age=0'],
+      ['Set-Cookie', 'nades_account=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0'],
+    ]),
   });
 };
