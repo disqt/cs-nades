@@ -47,8 +47,22 @@ h1 { font-size: 1.5rem; margin-bottom: 0.2rem; }
 #m-res-video:hover { opacity: 0.85; }
 .modal-frame p { font-size: 0.75rem; color: #8b949e; margin-top: 0.3rem; text-align: center; line-height: 1.3; }
 .modal-foot { padding: 0.75rem 1.25rem 1.25rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; position: relative; }
-.console-cmd { display: block; flex: 1; min-width: 0; background: #0d1117; border: 1px solid #21262d; padding: 0.4rem 0.6rem; border-radius: 0.25rem; font-size: 0.7rem; color: #8b949e; word-break: break-all; cursor: pointer; font-family: monospace; }
-.console-cmd:hover { color: #e6edf3; border-color: #58a6ff; }
+/* Collapsed setpos */
+.setpos-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #21262d;
+  border: 1px solid #30363d;
+  color: #8b949e;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-family: monospace;
+  transition: all 0.15s;
+}
+.setpos-btn:hover { color: #e6edf3; border-color: #58a6ff; }
 .source-link { font-size: 0.75rem; color: #58a6ff; text-decoration: none; white-space: nowrap; }
 @media (max-width: 600px) {
   .modal-frames { grid-template-columns: 1fr; }
@@ -60,6 +74,7 @@ h1 { font-size: 1.5rem; margin-bottom: 0.2rem; }
 .tech-icon svg { width: 1em; height: 1em; }
 .tech-icon-sm { font-size: 14px; margin-right: 0.2rem; }
 .tech-icon-md { font-size: 18px; margin-right: 0.35rem; }
+.tech-icon-lg { font-size: 22px; margin-right: 0.15rem; }
 .card-tech-text { font-size: 0.7rem; color: #8b949e; }
 
 /* Community badge */
@@ -69,22 +84,24 @@ h1 { font-size: 1.5rem; margin-bottom: 0.2rem; }
 .modal-tags .community-badge { background: rgba(99,66,198,0.2); color: #a78bfa; }
 .modal-tags .community-badge svg { width: 14px; height: 14px; }
 
-/* Technique pill badge */
-.technique-pill {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 0.3rem 0.8rem;
-  border-radius: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+/* Technique badges (decomposed) */
+.technique-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
   margin-top: 0.3rem;
 }
-.technique-pill.tech-simple { background: #1a3a1a; color: #4ade80; }
-.technique-pill.tech-jump { background: #3a2a0a; color: #fbbf24; }
-.technique-pill.tech-run { background: #3a1a0a; color: #fb923c; }
-.technique-pill.tech-complex { background: #3a0a0a; color: #f87171; }
+.technique-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.5rem;
+  background: #21262d;
+  color: #e6edf3;
+}
 
 /* Identity bar */
 .identity-bar { margin-bottom: 0.5rem; }
@@ -116,10 +133,22 @@ h1 { font-size: 1.5rem; margin-bottom: 0.2rem; }
 .report-btn:hover { border-color: #58a6ff; color: #e6edf3; }
 .report-btn.reported { background: #1f6feb; border-color: #1f6feb; color: #fff; pointer-events: none; }
 
-/* Lineup report (flag for deletion) */
-.lineup-report-btn { background: none; border: 1px solid #30363d; color: #8b949e; padding: 0.25rem 0.4rem; border-radius: 0.25rem; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; }
-.lineup-report-btn:hover { border-color: #f85149; color: #f85149; }
-.lineup-report-btn.reported { color: #f85149; border-color: #f85149; pointer-events: none; }
+/* Report lineup button */
+.report-lineup-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: 1px solid #30363d;
+  color: #8b949e;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+  transition: all 0.15s;
+}
+.report-lineup-btn:hover { border-color: #f85149; color: #f85149; }
+.report-lineup-btn.reported { color: #f85149; border-color: #f85149; pointer-events: none; }
 .lineup-report-dropdown { position: absolute; bottom: 3.5rem; right: 1.25rem; background: #161b22; border: 1px solid #30363d; border-radius: 0.5rem; flex-direction: column; gap: 0.25rem; padding: 0.5rem; z-index: 10; }
 .lineup-report-dropdown button { background: none; border: none; color: #e6edf3; padding: 0.35rem 0.75rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.8rem; text-align: left; white-space: nowrap; }
 .lineup-report-dropdown button:hover { background: #21262d; }
@@ -129,6 +158,8 @@ h1 { font-size: 1.5rem; margin-bottom: 0.2rem; }
 .bookmark-btn:hover { color: #f87171; border-color: #f87171; }
 .bookmark-btn.bookmarked { color: #f87171; }
 .bookmark-btn.bookmarked svg { fill: currentColor; }
+.bookmark-btn .tech-icon { display: flex; }
+.bookmark-btn .tech-icon svg { width: 16px; height: 16px; }
 
 /* Generic hidden */
 .hidden { display: none; }
