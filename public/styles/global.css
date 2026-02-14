@@ -46,7 +46,7 @@ h1 { font-size: 1.5rem; margin-bottom: 0.2rem; }
 #m-res-video { width: 100%; border-radius: 0.35rem; cursor: pointer; }
 #m-res-video:hover { opacity: 0.85; }
 .modal-frame p { font-size: 0.75rem; color: #8b949e; margin-top: 0.3rem; text-align: center; line-height: 1.3; }
-.modal-foot { padding: 0.75rem 1.25rem 1.25rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; }
+.modal-foot { padding: 0.75rem 1.25rem 1.25rem; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; position: relative; }
 .console-cmd { display: block; flex: 1; min-width: 0; background: #0d1117; border: 1px solid #21262d; padding: 0.4rem 0.6rem; border-radius: 0.25rem; font-size: 0.7rem; color: #8b949e; word-break: break-all; cursor: pointer; font-family: monospace; }
 .console-cmd:hover { color: #e6edf3; border-color: #58a6ff; }
 .source-link { font-size: 0.75rem; color: #58a6ff; text-decoration: none; white-space: nowrap; }
@@ -100,6 +100,14 @@ h1 { font-size: 1.5rem; margin-bottom: 0.2rem; }
 }
 .report-btn:hover { border-color: #58a6ff; color: #e6edf3; }
 .report-btn.reported { background: #1f6feb; border-color: #1f6feb; color: #fff; pointer-events: none; }
+
+/* Lineup report (flag for deletion) */
+.lineup-report-btn { background: none; border: 1px solid #30363d; color: #8b949e; padding: 0.25rem 0.4rem; border-radius: 0.25rem; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; }
+.lineup-report-btn:hover { border-color: #f85149; color: #f85149; }
+.lineup-report-btn.reported { color: #f85149; border-color: #f85149; pointer-events: none; }
+.lineup-report-dropdown { position: absolute; bottom: 3.5rem; right: 1.25rem; background: #161b22; border: 1px solid #30363d; border-radius: 0.5rem; flex-direction: column; gap: 0.25rem; padding: 0.5rem; z-index: 10; }
+.lineup-report-dropdown button { background: none; border: none; color: #e6edf3; padding: 0.35rem 0.75rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.8rem; text-align: left; white-space: nowrap; }
+.lineup-report-dropdown button:hover { background: #21262d; }
 
 /* Bookmarks */
 .bookmark-btn { position: absolute; top: 0.4rem; right: 0.4rem; background: rgba(33,38,45,0.85); border: 1px solid transparent; color: #8b949e; padding: 0.25rem; border-radius: 0.5rem; cursor: pointer; z-index: 2; backdrop-filter: blur(4px); transition: all 0.15s; line-height: 1; display: flex; align-items: center; justify-content: center; }

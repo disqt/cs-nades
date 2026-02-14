@@ -1,0 +1,95 @@
+---
+import { getDb } from '../lib/db';
+
+interface LineupReportGroup {
+  slug: string;
+  total: number;
+  outdated: number;
+  doesnt_work: number;
+  wrong_map: number;
+  other: number;
+}
+
+let reportGroups: LineupReportGroup[] = [];
+
+try {
+  const db = getDb();
+  reportGroups = db.prepare(`
+    SELECT
+      slug,
+      COUNT(*) as total,
+      SUM(CASE WHEN reason = 'outdated' THEN 1 ELSE 0 END) as outdated,
+      SUM(CASE WHEN reason = 'doesnt_work' THEN 1 ELSE 0 END) as doesnt_work,
+      SUM(CASE WHEN reason = 'wrong_map' THEN 1 ELSE 0 END) as wrong_map,
+      SUM(CASE WHEN reason = 'other' THEN 1 ELSE 0 END) as other
+    FROM lineup_reports
+    GROUP BY slug
+    ORDER BY total DESC
+  `).all() as LineupReportGroup[];
+} catch {
+  // DB not available or table doesn't exist yet
+}
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lineup Reports - CS Nades Admin</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #0d1117; color: #e6edf3; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { color: #58a6ff; }
+    .nav { display: flex; gap: 1rem; margin-bottom: 2rem; }
+    a { color: #58a6ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.75rem; text-align: center; border-bottom: 1px solid #30363d; }
+    th { color: #8b949e; font-size: 0.85rem; }
+    td:first-child { text-align: left; }
+    .reason-outdated { color: #f0883e; }
+    .reason-doesnt-work { color: #f85149; }
+    .reason-wrong-map { color: #d2a8ff; }
+    .reason-other { color: #8b949e; }
+    .report-count { font-weight: bold; }
+    .empty { color: #484f58; text-align: center; padding: 2rem; }
+  </style>
+</head>
+<body>
+  <h1>Lineup Reports</h1>
+  <div class="nav">
+    <a href="/">Dashboard</a>
+    <a href="/submissions">Submissions</a>
+    <a href="/reports">Frame Reports</a>
+    <a href="/lineup-reports">Lineup Reports</a>
+  </div>
+
+  {reportGroups.length === 0 ? (
+    <p class="empty">No lineup reports yet.</p>
+  ) : (
+    <table>
+      <thead>
+        <tr>
+          <th>Nade</th>
+          <th>Total</th>
+          <th class="reason-outdated">Outdated</th>
+          <th class="reason-doesnt-work">Doesn't work</th>
+          <th class="reason-wrong-map">Wrong map</th>
+          <th class="reason-other">Other</th>
+        </tr>
+      </thead>
+      <tbody>
+        {reportGroups.map(r => (
+          <tr>
+            <td>{r.slug}</td>
+            <td class="report-count">{r.total}</td>
+            <td class="reason-outdated">{r.outdated || '-'}</td>
+            <td class="reason-doesnt-work">{r.doesnt_work || '-'}</td>
+            <td class="reason-wrong-map">{r.wrong_map || '-'}</td>
+            <td class="reason-other">{r.other || '-'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+</body>
+</html>

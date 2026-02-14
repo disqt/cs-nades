@@ -71,6 +71,15 @@ const modalData = nades.map(n => ({
     <div class="modal-foot">
       <code class="console-cmd" id="m-console" title="Click to copy"></code>
       <a class="source-link" id="m-source" target="_blank" rel="noopener">csnades.gg &#8599;</a>
+      <button class="lineup-report-btn" id="lineup-report-btn" title="Report this lineup">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+      </button>
+      <div class="lineup-report-dropdown" id="lineup-report-dropdown" style="display:none">
+        <button data-reason="outdated">Outdated</button>
+        <button data-reason="doesnt_work">Doesn't work</button>
+        <button data-reason="wrong_map">Wrong map</button>
+        <button data-reason="other">Other</button>
+      </div>
     </div>
   </div>
 </div>
@@ -126,6 +135,12 @@ const modalData = nades.map(n => ({
     document.querySelectorAll('.report-btn.reported').forEach(btn => {
       btn.classList.remove('reported');
     });
+
+    // Reset lineup report state
+    const lrBtn = document.getElementById('lineup-report-btn')!;
+    const lrDropdown = document.getElementById('lineup-report-dropdown')!;
+    lrBtn.classList.remove('reported');
+    lrDropdown.style.display = 'none';
 
     mTitle.textContent = d.title;
 
@@ -339,5 +354,39 @@ const modalData = nades.map(n => ({
         el.classList.add('reported');
       }
     });
+  });
+
+  // Lineup report (flag for deletion) handlers
+  const lineupReportBtn = document.getElementById('lineup-report-btn')!;
+  const lineupReportDropdown = document.getElementById('lineup-report-dropdown')!;
+
+  lineupReportBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (lineupReportBtn.classList.contains('reported')) return;
+    const isVisible = lineupReportDropdown.style.display === 'flex';
+    lineupReportDropdown.style.display = isVisible ? 'none' : 'flex';
+  });
+
+  lineupReportDropdown.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const reason = (btn as HTMLElement).dataset.reason!;
+
+      const res = await fetch(`${base}api/lineup-reports`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: currentModalSlug, reason }),
+      });
+
+      if (res.ok) {
+        lineupReportDropdown.style.display = 'none';
+        lineupReportBtn.classList.add('reported');
+      }
+    });
+  });
+
+  // Close dropdown when clicking elsewhere in the modal
+  modal.addEventListener('click', () => {
+    lineupReportDropdown.style.display = 'none';
   });
 </script>

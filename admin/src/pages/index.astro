@@ -3,11 +3,17 @@ import { getDb } from '../lib/db';
 
 let pendingSubmissions = 0;
 let unreviewedReports = 0;
+let lineupReports = 0;
 
 try {
   const db = getDb();
   pendingSubmissions = (db.prepare("SELECT COUNT(*) as c FROM submissions WHERE status = 'pending'").get() as any).c;
   unreviewedReports = (db.prepare("SELECT COUNT(DISTINCT slug) as c FROM reports").get() as any).c;
+  try {
+    lineupReports = (db.prepare("SELECT COUNT(DISTINCT slug) as c FROM lineup_reports").get() as any).c;
+  } catch {
+    // Table may not exist yet
+  }
 } catch {
   // DB not available
 }
@@ -34,7 +40,8 @@ try {
   <div class="nav">
     <a href="/">Dashboard</a>
     <a href="/submissions">Submissions</a>
-    <a href="/reports">Reports</a>
+    <a href="/reports">Frame Reports</a>
+    <a href="/lineup-reports">Lineup Reports</a>
   </div>
 
   <div class="card">
@@ -47,6 +54,12 @@ try {
     <h2>Frame Reports</h2>
     <p class="count">{unreviewedReports}</p>
     <a href="/reports">Review reports &rarr;</a>
+  </div>
+
+  <div class="card">
+    <h2>Lineup Reports</h2>
+    <p class="count">{lineupReports}</p>
+    <a href="/lineup-reports">Review lineup reports &rarr;</a>
   </div>
 </body>
 </html>

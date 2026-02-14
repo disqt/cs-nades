@@ -49,6 +49,13 @@ export function initSchema(db: Database.Database): void {
       submitted_at INTEGER NOT NULL DEFAULT (unixepoch()),
       reviewed_at INTEGER
     );
+
+    CREATE TABLE IF NOT EXISTS lineup_reports (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      slug TEXT NOT NULL,
+      reason TEXT NOT NULL CHECK (reason IN ('outdated', 'doesnt_work', 'wrong_map', 'other')),
+      created_at INTEGER NOT NULL DEFAULT (unixepoch())
+    );
   `);
 
   // Migration: add side column to existing DBs
