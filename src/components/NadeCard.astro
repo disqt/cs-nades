@@ -1,5 +1,5 @@
 ---
-import { TECHNIQUE_LABELS, type Nade } from '../lib/nades';
+import { TECHNIQUE_LABELS, TECHNIQUE_ICONS, COMMUNITY_ICON, isCommunityNade, type Nade } from '../lib/nades';
 
 interface Props {
   nade: Nade;
@@ -11,6 +11,8 @@ const { nade, idx, bookmarked = false } = Astro.props;
 const title = `${nade.titleTo} from ${nade.titleFrom}`;
 const sideLabel = nade.team === 't' ? 'T' : 'CT';
 const technique = TECHNIQUE_LABELS[nade.technique] || nade.technique;
+const techIcon = TECHNIQUE_ICONS[nade.technique] || '';
+const isCommunity = isCommunityNade(nade);
 
 const frameBase = `data/${nade.map}/${nade.slug}`;
 ---
@@ -51,6 +53,10 @@ const frameBase = `data/${nade.map}/${nade.slug}`;
   </button>
   <div class="card-label">
     <span class="card-title">{title}</span>
-    <span class="card-tech">{technique}</span>
+    <span class="card-tech">
+      {techIcon && <span class="tech-icon tech-icon-sm" title={technique} set:html={techIcon} />}
+      <span class="card-tech-text">{technique}</span>
+      {isCommunity && <span class="community-badge" title="Community submitted" set:html={COMMUNITY_ICON} />}
+    </span>
   </div>
 </div>

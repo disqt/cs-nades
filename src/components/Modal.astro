@@ -1,5 +1,5 @@
 ---
-import { TECHNIQUE_LABELS, type Nade } from '../lib/nades';
+import { TECHNIQUE_LABELS, TECHNIQUE_ICONS, COMMUNITY_ICON, isCommunityNade, type Nade } from '../lib/nades';
 
 interface Props {
   nades: Nade[];
@@ -20,6 +20,8 @@ const modalData = nades.map(n => ({
   side: n.team === 't' ? 'T' : 'CT',
   technique: TECHNIQUE_LABELS[n.technique] || n.technique,
   techClass: techClass(n.technique),
+  techIcon: TECHNIQUE_ICONS[n.technique] || '',
+  isCommunity: isCommunityNade(n),
   movement: n.movement,
   console: n.console,
   source: n.source_url,
@@ -31,6 +33,8 @@ const modalData = nades.map(n => ({
   capAim: n.captions[1] || 'Aim',
   slug: n.slug,
 }));
+
+const communityIconSvg = COMMUNITY_ICON;
 ---
 
 <div class="modal-bg" id="modal-bg">
@@ -84,8 +88,9 @@ const modalData = nades.map(n => ({
   </div>
 </div>
 
-<script define:vars={{ modalData }}>
+<script define:vars={{ modalData, communityIconSvg }}>
   window.__modalData = modalData;
+  window.__communityIconSvg = communityIconSvg;
 </script>
 
 <script>
@@ -96,6 +101,8 @@ const modalData = nades.map(n => ({
     side: string;
     technique: string;
     techClass: string;
+    techIcon: string;
+    isCommunity: boolean;
     movement: string;
     console: string;
     source: string;
@@ -107,6 +114,7 @@ const modalData = nades.map(n => ({
     capAim: string;
     slug: string;
   }>;
+  const communityIcon = (window as any).__communityIconSvg as string;
 
   const bg = document.getElementById('modal-bg')!;
   const modal = document.getElementById('modal')!;
@@ -144,8 +152,11 @@ const modalData = nades.map(n => ({
 
     mTitle.textContent = d.title;
 
-    mTechnique.textContent = d.technique;
+    // Build technique pill with icon + text
+    const iconHtml = d.techIcon ? `<span class="tech-icon tech-icon-md">${d.techIcon}</span>` : '';
+    mTechnique.innerHTML = `${iconHtml}<span>${d.technique}</span>`;
     mTechnique.className = `technique-pill ${d.techClass}`;
+    mTechnique.title = d.technique;
 
     mTags.innerHTML = '';
     const mapTag = document.createElement('span');
@@ -163,6 +174,14 @@ const modalData = nades.map(n => ({
       moveTag.className = 'tag';
       moveTag.textContent = d.movement;
       mTags.appendChild(moveTag);
+    }
+
+    if (d.isCommunity) {
+      const communityTag = document.createElement('span');
+      communityTag.className = 'tag community-badge';
+      communityTag.title = 'Community submitted';
+      communityTag.innerHTML = `${communityIcon} Community`;
+      mTags.appendChild(communityTag);
     }
 
     mPos.src = d.position;
