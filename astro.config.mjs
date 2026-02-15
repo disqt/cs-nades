@@ -6,4 +6,5 @@ export default defineConfig({
   adapter: node({ mode: 'standalone' }),
   server: { port: 4321, host: '0.0.0.0' },
   base: '/cs/nades/',
+  security: { checkOrigin: false },
 });
