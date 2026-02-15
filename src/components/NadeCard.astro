@@ -1,5 +1,5 @@
 ---
-import { decomposeTechnique, ICON_HEART, ICON_COMMUNITY, isCommunityNade, type Nade } from '../lib/nades';
+import { decomposeTechnique, movementComponent, ICON_HEART, ICON_COMMUNITY, isCommunityNade, type Nade } from '../lib/nades';
 
 interface Props {
   nade: Nade;
@@ -10,7 +10,7 @@ interface Props {
 const { nade, idx, bookmarked = false } = Astro.props;
 const title = `${nade.titleTo} from ${nade.titleFrom}`;
 const sideLabel = nade.team === 't' ? 'T' : 'CT';
-const techComponents = decomposeTechnique(nade.technique);
+const techComponents = [...decomposeTechnique(nade.technique), ...(movementComponent(nade.movement) ? [movementComponent(nade.movement)!] : [])];
 const isCommunity = isCommunityNade(nade);
 
 const frameBase = `data/${nade.map}/${nade.slug}`;

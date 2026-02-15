@@ -1,5 +1,5 @@
 ---
-import { decomposeTechnique, ICON_FLAG, ICON_COMMUNITY, isCommunityNade, type Nade, type TechComponent } from '../lib/nades';
+import { decomposeTechnique, movementComponent, ICON_FLAG, ICON_COMMUNITY, isCommunityNade, type Nade, type TechComponent } from '../lib/nades';
 
 interface Props {
   nades: Nade[];
@@ -11,7 +11,7 @@ const modalData = nades.map(n => ({
   title: `${n.titleTo} from ${n.titleFrom}`,
   map: n.map,
   side: n.team === 't' ? 'T' : 'CT',
-  techComponents: decomposeTechnique(n.technique),
+  techComponents: [...decomposeTechnique(n.technique), ...(movementComponent(n.movement) ? [movementComponent(n.movement)] : [])] as TechComponent[],
   isCommunity: isCommunityNade(n),
   movement: n.movement,
   console: n.console,
@@ -175,13 +175,6 @@ const communityIconSvg = ICON_COMMUNITY;
     sideTag.className = `tag side-${d.side === 'T' ? 't' : 'ct'}`;
     sideTag.textContent = d.side;
     mTags.appendChild(sideTag);
-
-    if (d.movement && d.movement !== 'stationary') {
-      const moveTag = document.createElement('span');
-      moveTag.className = 'tag';
-      moveTag.textContent = d.movement;
-      mTags.appendChild(moveTag);
-    }
 
     if (d.isCommunity) {
       const communityTag = document.createElement('span');
